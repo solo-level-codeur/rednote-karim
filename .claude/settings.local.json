@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/abdelkarimhessaine/Desktop/elite project /poc 3/**)",
+      "Read(//Users/abdelkarimhessaine/Desktop/elite project /poc 3/**)",
+      "Read(//Users/abdelkarimhessaine/Desktop/elite project /**)",
+      "Read(//Users/abdelkarimhessaine/Desktop/elite project /memory-login/**)",
+      "Bash(npm install:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

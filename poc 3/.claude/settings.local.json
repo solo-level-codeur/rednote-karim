@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/abdelkarimhessaine/Desktop/elite project /memory-login/src/views/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
