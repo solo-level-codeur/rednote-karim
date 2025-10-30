@@ -60,4 +60,4 @@ tmp/
 temp/
 
 # Exclude nested git repositories
-memory-login/
+# memory-login/

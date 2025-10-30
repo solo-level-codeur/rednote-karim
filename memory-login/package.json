@@ -1,0 +1,40 @@
+{
+  "name": "memory-login",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@oruga-ui/oruga-next": "^0.11.5",
+    "@oruga-ui/theme-bulma": "^0.7.3",
+    "@oruga-ui/theme-oruga": "^0.7.1",
+    "@tiptap/extension-color": "^3.4.1",
+    "@tiptap/extension-highlight": "^3.4.1",
+    "@tiptap/extension-image": "^3.4.1",
+    "@tiptap/extension-link": "^3.4.1",
+    "@tiptap/extension-task-item": "^3.4.1",
+    "@tiptap/extension-task-list": "^3.4.1",
+    "@tiptap/extension-text-align": "^3.4.1",
+    "@tiptap/extension-text-style": "^3.4.1",
+    "@tiptap/extension-underline": "^3.4.1",
+    "@tiptap/extension-youtube": "^3.4.1",
+    "@tiptap/starter-kit": "^3.4.1",
+    "@tiptap/vue-3": "^3.4.1",
+    "axios": "^1.11.0",
+    "buefy": "^3.0.2",
+    "vue": "^3.5.18",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "vite": "^7.0.6",
+    "vite-plugin-vue-devtools": "^8.0.0"
+  }
+}
