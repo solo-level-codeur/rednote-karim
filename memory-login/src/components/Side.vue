@@ -1,43 +1,76 @@
 <template>
-  <aside class="sidebar">
+  <aside class="memory-sidebar d-flex flex-column position-fixed h-100" 
+         style="left: 0; top: 0;">
+    
     <!-- Logo Header -->
-    <div class="sidebar-header">
-      <div class="logo">
-        <span class="logo-icon">📦</span>
-        <span class="logo-text">Memory</span>
+    <div class="p-3 theme-border border-bottom">
+      <div class="d-flex align-items-center">
+        <div class="bg-success rounded-2 d-flex align-items-center justify-content-center me-2" 
+             style="width: 32px; height: 32px; font-size: 1.2rem;">
+          📦
+        </div>
+        <span class="fw-bold theme-text-primary fs-5">Memory</span>
       </div>
     </div>
     
     <!-- Menu Navigation -->
-    <nav class="sidebar-menu">
-      <ul>
-        <li class="menu-item" :class="{ active: $route.name === 'dashboard' }">
-          <router-link to="/dashboard" class="menu-link">
-            <span class="menu-icon">🏠</span>
-            <span class="menu-text">Dashboard</span>
+    <nav class="flex-grow-1 py-3">
+      <ul class="nav nav-pills flex-column">
+        
+        <li class="nav-item">
+          <router-link 
+            to="/dashboard" 
+            class="nav-link d-flex align-items-center text-decoration-none"
+            :class="{ 'active': $route.name === 'dashboard' }">
+            <span class="me-3 fs-5">🏠</span>
+            <span class="fw-medium">Dashboard</span>
           </router-link>
         </li>
-        <li class="menu-item" :class="{ active: $route.name === 'notes' }">
-          <router-link to="/notes" class="menu-link">
-            <span class="menu-icon">📝</span>
-            <span class="menu-text">Éditeur de Notes</span>
+        
+        <li class="nav-item">
+          <router-link 
+            to="/notes" 
+            class="nav-link d-flex align-items-center text-decoration-none"
+            :class="{ 'active': $route.name === 'notes' }">
+            <span class="me-3 fs-5">📝</span>
+            <span class="fw-medium">Éditeur de Notes</span>
           </router-link>
         </li>
-        <li class="menu-item">
-          <span class="menu-icon">✅</span>
-          <span class="menu-text">Tasks</span>
+        
+        <li class="nav-item">
+          <span class="nav-link d-flex align-items-center theme-text-secondary">
+            <span class="me-3 fs-5">✅</span>
+            <span class="fw-medium">Tasks</span>
+          </span>
         </li>
-        <li class="menu-item" :class="{ active: $route.name === 'projects' }">
-        <router-link to="/projects" class="menu-link">
-          <span class="menu-icon">📁</span>
-          <span class="menu-text">Projects</span>
+        
+        <li class="nav-item">
+          <router-link 
+            to="/projects" 
+            class="nav-link d-flex align-items-center text-decoration-none"
+            :class="{ 'active': $route.name === 'projects' }">
+            <span class="me-3 fs-5">📁</span>
+            <span class="fw-medium">Projects</span>
           </router-link>
-
         </li>
-        <li class="menu-item">
-          <span class="menu-icon">👥</span>
-          <span class="menu-text">Contributors</span>
+        
+        <li class="nav-item">
+          <router-link 
+            to="/profile" 
+            class="nav-link d-flex align-items-center text-decoration-none"
+            :class="{ 'active': $route.name === 'profile' }">
+            <span class="me-3 fs-5">👤</span>
+            <span class="fw-medium">Profil</span>
+          </router-link>
         </li>
+        
+        <li class="nav-item">
+          <span class="nav-link d-flex align-items-center theme-text-secondary">
+            <span class="me-3 fs-5">👥</span>
+            <span class="fw-medium">Contributors</span>
+          </span>
+        </li>
+        
       </ul>
     </nav>
   </aside>
@@ -50,85 +83,22 @@ export default {
 </script>
 
 <style scoped>
-.sidebar {
-  width: 250px;
-  height: 100vh;
-  background-color: #f8f9fa;
-  border-right: 1px solid #e9ecef;
-  position: fixed;
-  left: 0;
-  top: 0;
+/* Bootstrap override pour router-link actif */
+.nav-link:not(.active):hover {
+  background-color: #f8f9fa !important;
+  color: #495057 !important;
 }
 
-.sidebar-header {
-  padding: 1.5rem 1rem;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.logo-icon {
-  font-size: 1.5rem;
-  background: #48c78e;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo-text {
-  font-weight: bold;
-  font-size: 1.2rem;
-  color: #363636;
-}
-
-.sidebar-menu {
-  padding: 1rem 0;
-}
-
-.sidebar-menu ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.menu-item {
-  transition: all 0.2s;
-}
-
-.menu-link {
+.nav-link {
+  border-radius: 0.375rem;
+  margin: 0.125rem 0.5rem;
   padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  text-decoration: none;
-  color: inherit;
-  width: 100%;
+  color: #6c757d;
+  transition: all 0.15s ease-in-out;
 }
 
-.menu-item:hover {
-  background-color: #f1f3f4;
-}
-
-.menu-item.active {
-  background-color: #ffe8e6;
-  border-right: 3px solid #ff3860;
-  color: #ff3860;
-}
-
-.menu-icon {
-  width: 20px;
-  text-align: center;
-}
-
-.menu-text {
-  font-weight: 500;
+.nav-link.active {
+  background-color: #0d6efd !important;
+  color: white !important;
 }
 </style>

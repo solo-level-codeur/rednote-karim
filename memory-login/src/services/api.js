@@ -48,4 +48,12 @@ export const notesAPI = {
   deleteNote: (id) => api.delete(`/note/${id}`)
 }
 
+export const profileAPI = {
+  getUserProfile: () => api.get('/user/profile'),
+  updateUserProfile: (profileData) => api.put('/user/profile', profileData),
+  updateAvatar: (avatarData) => api.put('/user/avatar', avatarData),
+  getUserProjects: () => api.get('/user/projects'),
+  updateProject: (projectId, projectData) => api.put(`/user/projects/${projectId}`, projectData)
+}
+
 export default api

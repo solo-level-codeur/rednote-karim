@@ -10,26 +10,42 @@
   - weekNotes: Number - Notes de la semaine
 -->
 <template>
-  <div class="stats-cards">
-    <div class="stat-card">
-      <div class="stat-icon">📝</div>
-      <div class="stat-info">
-        <div class="stat-number">{{ totalNotes }}</div>
-        <div class="stat-label">Notes totales</div>
+  <div class="container-fluid px-5 mt-4">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body d-flex align-items-center">
+            <div class="me-3 fs-1">📝</div>
+            <div>
+              <div class="h4 mb-1 fw-bold">{{ totalNotes }}</div>
+              <div class="text-muted small">Notes totales</div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">✨</div>
-      <div class="stat-info">
-        <div class="stat-number">{{ todayNotes }}</div>
-        <div class="stat-label">Aujourd'hui</div>
+      
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body d-flex align-items-center">
+            <div class="me-3 fs-1">✨</div>
+            <div>
+              <div class="h4 mb-1 fw-bold">{{ todayNotes }}</div>
+              <div class="text-muted small">Aujourd'hui</div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🎯</div>
-      <div class="stat-info">
-        <div class="stat-number">{{ weekNotes }}</div>
-        <div class="stat-label">Cette semaine</div>
+      
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body d-flex align-items-center">
+            <div class="me-3 fs-1">🎯</div>
+            <div>
+              <div class="h4 mb-1 fw-bold">{{ weekNotes }}</div>
+              <div class="text-muted small">Cette semaine</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -56,44 +72,5 @@ export default {
 </script>
 
 <style scoped>
-.stats-cards {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.stat-card {
-  background: white;
-  border: 1px solid #ddd;
-  padding: 1rem;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.stat-icon {
-  font-size: 2rem;
-}
-
-.stat-number {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-@media (max-width: 768px) {
-  .stats-cards {
-    flex-direction: column;
-  }
-  
-  .stat-card {
-    justify-content: center;
-  }
-}
+/* Aucun CSS personnalisé - 100% Bootstrap */
 </style>

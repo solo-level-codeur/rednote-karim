@@ -16,7 +16,7 @@
   - fetchNotes(), createNote(), deleteNote()
 -->
 <template>
-  <div class="notes-container">
+  <div class="notes-container" style="padding: 2rem 5%;">
     
     <NotesHeader 
       :showCreateForm="showCreateForm" 

@@ -1,27 +1,23 @@
 <template>
-  <div class="projects-layout">
+  <div class="d-flex min-vh-100">
     <Sidebar />
     
-    <main class="main-content">
-      <div class="hero-section">
-        <DashboardHeader 
-          :userName="userName"
-          @logout="logout" />
-      </div>
-      
-      <div class="projects-content">
-        <h1 class="title">Mes Projets</h1>
-        
-        <div class="columns is-multiline">
-          <div 
-            v-for="project in projects" 
-            :key="project.id" 
-            class="column is-one-third"
-          >
-            <ProjectCard 
-              :project="project" 
-              @click="openProject" 
-            />
+    <main class="flex-grow-1" style="margin-left: var(--sidebar-width); background: var(--bg-light);">
+      <div class="container-fluid p-4">
+        <div class="bg-white p-4 rounded shadow-sm">
+          <h1 class="theme-text-primary mb-4">Mes Projets</h1>
+          
+          <div class="row g-4">
+            <div 
+              v-for="project in projects" 
+              :key="project.id" 
+              class="col-md-4"
+            >
+              <ProjectCard 
+                :project="project" 
+                @click="openProject" 
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -34,15 +30,13 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import ProjectCard from '@/components/projects/ProjectCard.vue'
 import Sidebar from '@/components/Side.vue'
-import DashboardHeader from '@/components/dashboard/DashboardHeader.vue'
 import { authStore } from '@/stores/auth'
 
 export default {
   name: 'ProjectsView',
   components: {
     ProjectCard,
-    Sidebar,
-    DashboardHeader
+    Sidebar
   },
   setup() {
     const router = useRouter()
@@ -95,35 +89,9 @@ export default {
 </script>
 
 <style scoped>
-.projects-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-.main-content {
-  flex: 1;
-  margin-left: 250px;
-  background: #f5f5f5;
-}
-
-.hero-section {
-  background: #f5f5f5;
-}
-
-.projects-content {
-  padding: 2rem;
-  background: white;
-  margin: 0 2rem 2rem;
-}
-
 @media (max-width: 768px) {
-  .main-content {
-    margin-left: 0;
-  }
-  
-  .projects-content {
-    margin: 0 1rem 1rem;
-    padding: 1rem;
+  main {
+    margin-left: 0 !important;
   }
 }
 </style>

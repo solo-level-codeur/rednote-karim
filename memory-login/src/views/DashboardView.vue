@@ -120,7 +120,8 @@ export default {
 }
 
 .dashboard-content {
-  padding: 2rem;
+  padding-top: 2rem;
+  padding-bottom: 3rem;
   background: white;
   margin: 0 2rem 2rem;
 }

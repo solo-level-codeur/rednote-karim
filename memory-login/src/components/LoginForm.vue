@@ -1,17 +1,17 @@
 <template>
-  <div class="form-width">
-    <div class="field">
+  <div class="col-md-6 mx-auto">
+    <div class="mb-3">
       <input 
-        class="input" 
+        class="form-control form-control-lg" 
         v-model="email" 
         type="email" 
         placeholder="Email"
         :disabled="loading">
     </div>
 
-    <div class="field">
+    <div class="mb-3">
       <input 
-        class="input is-half" 
+        class="form-control form-control-lg" 
         v-model="password" 
         type="password" 
         placeholder="Password"
@@ -19,26 +19,29 @@
         @keyup.enter="handleLogin">
     </div>
 
-    <div v-if="error" class="notification is-danger is-light mb-4">
+    <div v-if="error" class="alert alert-danger" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
       {{ error }}
     </div>
 
-    <div class="has-text-right mb-4">
-      <a href="#">Forgot Password?</a>
+    <div class="text-end mb-4">
+      <a href="#" class="text-decoration-none">Forgot Password?</a>
     </div>
 
-    <div class="has-text-centered">
+    <div class="text-center mb-4">
       <button 
-        class="button is-danger is-medium custom-button"
+        class="btn btn-danger btn-lg w-75"
         @click="handleLogin"
-        :disabled="loading || !email || !password"
-        :class="{ 'is-loading': loading }">
+        :disabled="loading || !email || !password">
+        <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+        <i v-else class="fas fa-sign-in-alt me-2"></i>
         Log In
       </button>
     </div>
 
-    <p class="has-text-centered mt-5">
-      Don't have an account? <router-link to="/register">Sign Up</router-link>
+    <p class="text-center mt-4">
+      Don't have an account? 
+      <router-link to="/register" class="text-decoration-none fw-semibold">Sign Up</router-link>
     </p>
   </div>
 </template>
@@ -88,11 +91,5 @@ export default {
 </script>
 
 <style scoped>
-.form-width {
-  width: 50%;
-}
-
-.custom-button {
-  width: 80%;
-}
+/* Aucun CSS personnalisé - 100% Bootstrap */
 </style>

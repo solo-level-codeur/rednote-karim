@@ -13,22 +13,34 @@
   - @delete-note - Note à supprimer (propagé depuis NoteCard)
 -->
 <template>
-  <div class="notes-grid-container">
-    <div v-if="loading" class="has-text-centered">
-      <div class="button is-loading is-large is-white"></div>
+  <div class="w-100">
+    <!-- Loading State -->
+    <div v-if="loading" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
     </div>
 
-    <div v-else-if="notes.length === 0" class="has-text-centered">
-      <p class="subtitle">Aucune note trouvée</p>
+    <!-- Empty State -->
+    <div v-else-if="notes.length === 0" class="text-center py-5">
+      <div class="mb-3 text-muted">
+        <i class="fas fa-sticky-note" style="font-size: 3rem;"></i>
+      </div>
+      <h5 class="text-muted">Aucune note trouvée</h5>
+      <p class="text-muted">Créez votre première note pour commencer</p>
     </div>
 
-    <div v-else class="notes-grid">
-      <NoteCard 
+    <!-- Notes Grid -->
+    <div v-else class="row g-4">
+      <div 
         v-for="note in notes" 
-        :key="note.id" 
-        :note="note"
-        @edit="$emit('edit-note', $event)"
-        @delete="$emit('delete-note', $event)" />
+        :key="note.id"
+        class="col-12 col-md-6 col-xl-4">
+        <NoteCard 
+          :note="note"
+          @edit="$emit('edit-note', $event)"
+          @delete="$emit('delete-note', $event)" />
+      </div>
     </div>
   </div>
 </template>
@@ -56,61 +68,5 @@ export default {
 </script>
 
 <style scoped>
-.notes-grid-container {
-  width: 100%;
-}
-
-/* Grille des notes */
-.notes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-}
-
-/* États de chargement et vide */
-.has-text-centered {
-  text-align: center;
-  padding: 2rem;
-}
-
-.subtitle {
-  font-size: 1.25rem;
-  color: #718096;
-  margin: 0;
-}
-
-.button.is-loading.is-large.is-white {
-  background: transparent;
-  border: none;
-  width: 50px;
-  height: 50px;
-  position: relative;
-}
-
-.button.is-loading.is-large.is-white::after {
-  content: '';
-  position: absolute;
-  width: 30px;
-  height: 30px;
-  margin: auto;
-  border: 3px solid transparent;
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-@keyframes spin {
-  0% { transform: translate(-50%, -50%) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .notes-grid {
-    grid-template-columns: 1fr;
-  }
-}
+/* Aucun CSS personnalisé - 100% Bootstrap */
 </style>

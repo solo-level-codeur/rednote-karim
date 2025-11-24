@@ -1,10 +1,17 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from './router'
-import Oruga from "@oruga-ui/oruga-next";
-import { bulmaConfig } from "@oruga-ui/theme-bulma";
-import "@oruga-ui/theme-bulma/dist/bulma.css";
 import { authStore } from './stores/auth'
+
+// Bootstrap
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min.js";
+
+// FontAwesome
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
+// Theme personnalisé
+import "./assets/styles/theme.css";
 
 // Initialiser l'authentification
 authStore.initializeAuth()
@@ -12,5 +19,5 @@ authStore.initializeAuth()
 // CORRECT : Créer l'app d'abord
 const app = createApp(App)
 app.use(router)                    // ← Ajouter le router AVANT mount
-app.use(Oruga, bulmaConfig)        // ← Ajouter Oruga AVANT mount  
+  
 app.mount("#app")                  // ← Mount en dernier

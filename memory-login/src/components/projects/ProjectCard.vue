@@ -1,11 +1,26 @@
 <template>
-  <div class="card" @click="$emit('click', project)">
-    <div class="card-content">
-      <h3 class="title is-5">{{ project.name }}</h3>
-      <p class="content">{{ project.description || 'Aucune description' }}</p>
-      <p class="has-text-grey">
-        Propriétaire: {{ project.owner }}
-      </p>
+  <div class="card h-100" 
+       @click="$emit('click', project)"
+       style="cursor: pointer;">
+    <div class="card-body">
+      <div class="d-flex align-items-start mb-3">
+        <div class="me-3 text-primary fs-4">
+          📁
+        </div>
+        <div class="flex-grow-1">
+          <h5 class="card-title mb-2">{{ project.name }}</h5>
+          <p class="card-text text-muted mb-3">
+            {{ project.description || 'Aucune description' }}
+          </p>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="card-footer bg-transparent border-0">
+      <small class="text-muted">
+        <i class="fas fa-user me-2"></i>Propriétaire: {{ project.owner }}
+      </small>
     </div>
   </div>
 </template>
@@ -24,23 +39,5 @@ export default {
 </script>
 
 <style scoped>
-.card {
-  cursor: pointer;
-  margin-bottom: 1rem;
-  background-color: white;
-  border: 1px solid #dbdbdb;
-  border-radius: 0.375rem;
-  box-shadow: 0 0.125em 0.25em rgba(10, 10, 10, 0.1);
-}
-
-.card:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  transform: translateY(-2px);
-  transition: all 0.2s ease;
-}
-
-.card-content {
-  background-color: white;
-  color: #363636;
-}
+/* Aucun CSS personnalisé - 100% Bootstrap */
 </style>

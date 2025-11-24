@@ -4,6 +4,7 @@ import DashboardView from '../views/DashboardView.vue' // Nouvel import
 import RegisterView from '../views/RegisterView.vue'
 import NotesView from '../views/NotesView.vue'
 import ProjectsView from '../views/ProjectsView.vue'
+import ProfileView from '../views/ProfileView.vue'
 import { authStore } from '../stores/auth'
 
 const routes = [
@@ -37,6 +38,12 @@ const routes = [
     path: '/projects',
     name: 'projects',
     component: ProjectsView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: ProfileView,
     meta: { requiresAuth: true }
   },
 ]

@@ -6,8 +6,8 @@
     <AppHeader />
     
     <div class="center-wrapper">
-      <div class="has-text-centered mt-6 mb-6">
-        <h1 class="title is-2">Welcome Back</h1>
+      <div class="text-center my-5">
+        <h1 class="display-4 fw-bold theme-text-primary">Welcome Back</h1>
       </div>
       <LoginForm />
     </div>
@@ -16,16 +16,13 @@
 
 <script>
 import AppHeader from '../components/AppHeader.vue'
-import LoginTitle from '../components/LoginTitle.vue'
 import LoginForm from '../components/LoginForm.vue'
 
 export default {
   name: 'LoginView',
   components: {
     AppHeader,
-    LoginTitle,
-    LoginForm,
-    
+    LoginForm
   }
 }
 </script>
