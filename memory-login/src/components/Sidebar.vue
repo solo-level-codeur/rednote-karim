@@ -30,6 +30,16 @@
             <span class="fw-medium">Notes</span>
           </router-link>
         </li>
+
+        <li class="nav-item-custom mb-1">
+          <router-link
+            to="/all-notes"
+            class="nav-link-custom d-flex align-items-center py-3 px-3 rounded-end-pill text-white text-decoration-none"
+          >
+            <i class="fas fa-list me-3" style="width: 20px;"></i>
+            <span class="fw-medium">All Notes</span>
+          </router-link>
+        </li>
         
         <li class="nav-item-custom mb-1">
           <router-link

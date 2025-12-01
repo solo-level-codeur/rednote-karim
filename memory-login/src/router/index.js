@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
-import DashboardView from '../views/DashboardView.vue' 
+import DashboardView from '../views/DashboardView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import NotesView from '../views/NotesView.vue'
 import ProjectsView from '../views/ProjectsView.vue'
@@ -8,6 +8,7 @@ import ProfileView from '../views/ProfileView.vue'
 import AdminUsersView from '../views/AdminUsersView.vue'
 import SharedNotesView from '../views/SharedNotesView.vue'
 import TagsView from '../views/TagsView.vue'
+import AllNotesView from '../views/AllNotesView.vue'
 import { authStore } from '../stores/auth'
 
 const routes = [
@@ -27,8 +28,8 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path:'/register',
-    name:'register',
+    path: '/register',
+    name: 'register',
     component: RegisterView,
     meta: { requiresAuth: true, requiresAdmin: true }
   },
@@ -37,7 +38,7 @@ const routes = [
     name: 'notes',
     component: NotesView,
     meta: { requiresAuth: true },
-    props: () => ({ 
+    props: () => ({
       projectId: null,
       key: 'all-notes'
     })
@@ -53,7 +54,7 @@ const routes = [
     name: 'project-notes',
     component: NotesView,
     meta: { requiresAuth: true },
-    props: route => ({ 
+    props: route => ({
       projectId: route.params.projectId,
       key: `project-${route.params.projectId}`
     })
@@ -82,6 +83,12 @@ const routes = [
     component: TagsView,
     meta: { requiresAuth: true }
   },
+  {
+    path: '/all-notes',
+    name: 'all-notes',
+    component: AllNotesView,
+    meta: { requiresAuth: true }
+  },
 ]
 
 const router = createRouter({
@@ -93,12 +100,12 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
-  
+
   if (requiresAuth && !authStore.state.isAuthenticated) {
     next('/login')
   } else if (requiresAdmin && authStore.state.user?.role !== 'Admin') {
     // Seuls les admins peuvent accéder aux pages admin
-    next('/dashboard') 
+    next('/dashboard')
   } else if (to.name === 'login' && authStore.state.isAuthenticated) {
     next('/dashboard')
   } else if (to.name === 'register' && authStore.state.isAuthenticated && authStore.state.user?.role !== 'Admin') {
