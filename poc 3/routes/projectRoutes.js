@@ -1,27 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const { getAllprojectsController} = require('../controllers/projectController');
-const { registerUser, loginUser, getUserProfile } = require('../controllers/userController');
-const { protect, authorizeprojectOwner } = require('../middlewares/authMiddleware');
+const { protect } = require('../middlewares/authMiddleware');
+const { 
+  createProjectController, 
+  getAllProjectsController, 
+  getProjectByIdController, 
+  updateProjectController, 
+  deleteProjectController 
+} = require('../controllers/projectController');
 
-// Routes utilisateur
-router.post('/register', registerUser);
-router.post('/login', loginUser);
-router.get('/profile', protect, getUserProfile);
+// Toutes les routes projets nécessitent une authentification
+router.use(protect);
 
-// Route pour récupérer toutes les projectss (protégée)
-router.get('/', protect, getAllprojectsController);
-
-// Route pour récupérer une project par ID (protégée)
-router.get('/project/:id', protect, authorizeprojectOwner, getprojectByIdController);
-
-// Route pour créer une nouvelle project (protégée)
-router.post('/project', protect, createprojectController);
-
-// Route pour mettre à jour une project par ID (protégée)
-router.put('/project/:id', protect, authorizeprojectOwner, updateprojectController);
-
-// Route pour supprimer une project par ID (protégée)
-router.delete('/project/:id', protect, authorizeprojectOwner, deleteprojectController);
+// Routes CRUD pour les projets
+router.post('/', createProjectController);           // POST /api/projects
+router.get('/', getAllProjectsController);           // GET /api/projects  
+router.get('/:id', getProjectByIdController);        // GET /api/projects/:id
+router.put('/:id', updateProjectController);         // PUT /api/projects/:id
+router.delete('/:id', deleteProjectController);      // DELETE /api/projects/:id
 
 module.exports = router;

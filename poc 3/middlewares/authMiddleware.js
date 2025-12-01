@@ -26,11 +26,11 @@ const authorizeNoteOwner = async (req, res, next) => {
   const userId = req.user.id;
 
   try {
-    const [rows] = await pool.execute('SELECT user_id FROM notes WHERE id = ?', [noteId]);
+    const [rows] = await pool.execute('SELECT id_users FROM notes WHERE id = ?', [noteId]);
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Note non trouvée' });
     }
-    if (rows[0].user_id !== userId) {
+    if (rows[0].id_users !== userId) {
       return res.status(403).json({ message: 'Accès refusé, vous n\'êtes pas le créateur de cette note' });
     }
     next();

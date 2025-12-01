@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import Sidebar from '../components/Side.vue'
+import Sidebar from '../components/Sidebar.vue'
 import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
 import DashboardStats from '../components/dashboard/DashboardStats.vue'
 import NotesList from '../components/notes/NotesList.vue'

@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Read(//Users/abdelkarimhessaine/Desktop/elite project /memory-login/src/views/**)"
+      "Read(//Users/abdelkarimhessaine/Desktop/elite project /memory-login/src/views/**)",
+      "Read(//Users/abdelkarimhessaine/Desktop/elite project /SQL/**)"
     ],
     "deny": [],
     "ask": []

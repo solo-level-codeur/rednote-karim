@@ -3,6 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const noteRoutes = require('./routes/noteRoutes');
+const userRoutes = require('./routes/userRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const tagRoutes = require('./routes/tagRoutes');
+const shareRoutes = require('./routes/shareRoutes');
+const commentRoutes = require('./routes/commentRoutes');
 const pool = require('./config/db');
 
 // Test database connection
@@ -23,6 +28,11 @@ app.use(bodyParser.json());
 
 // API routes
 app.use('/api/notes', noteRoutes);
+app.use('/api', userRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/tags', tagRoutes);
+app.use('/api/share', shareRoutes);
+app.use('/api/comments', commentRoutes);
 
 app.listen(port, () => {
     console.log(`Server started on http://localhost:${port}`);

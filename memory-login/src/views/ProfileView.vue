@@ -11,13 +11,32 @@
   - ProfileProjects - Tableau des projets ouverts
 -->
 <template>
-  <div class="profile-layout">
+  <div class="d-flex min-vh-100">
     <Sidebar />
     
-    <main class="main-content">
+    <main class="flex-grow-1 ms-auto bg-light" style="margin-left: 250px;">
       <div class="container-fluid py-4">
         
-        <div class="row justify-content-center">
+        <!-- État de chargement -->
+        <div v-if="loading" class="text-center py-5">
+          <div class="spinner-border text-primary mb-3"></div>
+          <p class="text-muted">Chargement du profil...</p>
+        </div>
+        
+        <!-- État d'erreur -->
+        <div v-else-if="error" class="alert alert-danger text-center">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          {{ error }}
+          <button 
+            @click="loadUserProfile" 
+            class="btn btn-outline-danger btn-sm ms-3"
+          >
+            Réessayer
+          </button>
+        </div>
+        
+        <!-- Contenu principal -->
+        <div v-else-if="user" class="row justify-content-center">
           <!-- Profil utilisateur -->
           <div class="col-md-8 mb-4">
             <ProfileHeader :user="user" />
@@ -36,10 +55,12 @@
 </template>
 
 <script>
-import Sidebar from '../components/Side.vue'
+import Sidebar from '../components/Sidebar.vue'
 import ProfileHeader from '../components/profile/ProfileHeader.vue'
 import ProfileInfo from '../components/profile/ProfileInfo.vue'
 import { authStore } from '../stores/auth'
+import { profileAPI } from '../services/api'
+// Utilise Bootstrap CSS avec Vue classique
 
 export default {
   name: 'ProfileView',
@@ -50,19 +71,9 @@ export default {
   },
   data() {
     return {
-      user: {
-        id: 1,
-        firstName: 'Jean',
-        lastName: 'Dupont',
-        email: 'jean.dupont@entreprise.com',
-        jobTitle: 'Développeur Full Stack',
-        department: 'Équipe Tech',
-        role: 'Developer',
-        bio: 'Passionné par le développement web moderne, j\'aime créer des applications performantes et user-friendly. Spécialisé en Vue.js et Node.js avec plus de 5 ans d\'expérience.',
-        skills: ['Vue.js', 'Node.js', 'JavaScript', 'TypeScript', 'MongoDB', 'Git'],
-        avatar: null,
-        avatarColor: '#3273dc'
-      }
+      user: null,
+      loading: true,
+      error: null
     }
   },
   async mounted() {
@@ -70,44 +81,40 @@ export default {
   },
   methods: {
     async loadUserProfile() {
+      this.loading = true
       try {
-        const storedUser = authStore.state.user
-        if (storedUser) {
-          this.user = {
-            ...this.user,
-            ...storedUser
-          }
-        }
+        const response = await profileAPI.getUserProfileWithStats()
+        this.user = response.data
+        this.error = null
       } catch (error) {
         console.error('Erreur lors du chargement du profil:', error)
+        this.error = 'Erreur lors du chargement du profil utilisateur'
+      } finally {
+        this.loading = false
       }
     },
     
-    
-    
-    handleUserUpdate(userData) {
-      this.user = { ...this.user, ...userData }
-      // Ici on pourrait sauvegarder via API
+    async handleUserUpdate(userData) {
+      try {
+        const response = await profileAPI.updateUserProfile(userData)
+        if (response.data.success) {
+          this.user = response.data.user
+          alert('Profil mis à jour avec succès!')
+        }
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du profil:', error)
+        alert('Erreur lors de la mise à jour du profil')
+      }
     }
   }
 }
 </script>
 
 <style scoped>
-.profile-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-.main-content {
-  flex: 1;
-  margin-left: 250px;
-  background: #f5f5f5;
-}
-
+/* Layout responsive géré par Bootstrap */
 @media (max-width: 1024px) {
   .main-content {
-    margin-left: 0;
+    margin-left: 0 !important;
   }
 }
 </style>

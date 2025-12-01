@@ -20,12 +20,20 @@
       <p class="text-muted mb-0 fs-5">Organisez vos idées et inspirations</p>
     </div>
     
-    <button 
-      class="btn btn-primary btn-lg"
-      @click="$emit('create-note')"
-      v-if="!showCreateForm">
-      Nouvelle Note
-    </button>
+    <div class="d-flex gap-2">
+      <button 
+        class="btn btn-outline-primary btn-lg"
+        @click="$emit('search')"
+        title="Rechercher des notes">
+        <i class="fas fa-search"></i>
+      </button>
+      <button 
+        class="btn btn-primary btn-lg"
+        @click="$emit('create-note')"
+        v-if="!showCreateForm">
+        Nouvelle Note
+      </button>
+    </div>
   </div>
 </template>
 
@@ -38,7 +46,7 @@ export default {
       default: false
     }
   },
-  emits: ['create-note']
+  emits: ['create-note', 'search']
 }
 </script>
 

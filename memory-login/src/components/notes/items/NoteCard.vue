@@ -29,6 +29,24 @@
             <i class="fas fa-edit"></i>
           </button>
           <button 
+            class="btn btn-outline-success" 
+            @click="showShareModal = true" 
+            title="Partager">
+            <i class="fas fa-share-alt"></i>
+          </button>
+          <button 
+            class="btn btn-outline-info" 
+            @click="showTagModal = true" 
+            title="Gérer les tags">
+            <i class="fas fa-tags"></i>
+          </button>
+          <button 
+            class="btn btn-outline-warning" 
+            @click="showProjectModal = true" 
+            title="Assigner à un projet">
+            <i class="fas fa-folder"></i>
+          </button>
+          <button 
             class="btn btn-outline-danger" 
             @click="$emit('delete', note)" 
             title="Supprimer">
@@ -45,21 +63,61 @@
         <i class="fas fa-calendar-alt me-2"></i>{{ formatDate(note.created_at) }}
       </small>
     </div>
+    
+    <!-- Modals -->
+    <ShareNoteModal 
+      v-if="showShareModal"
+      :noteId="note.id"
+      :noteTitle="note.title"
+      @close="showShareModal = false"
+    />
+    
+    <TagSelectorModal 
+      v-if="showTagModal"
+      :noteId="note.id"
+      :noteTitle="note.title"
+      @close="showTagModal = false"
+      @tags-updated="handleTagsUpdate"
+    />
+    
+    <ProjectSelectorModal 
+      v-if="showProjectModal"
+      :noteId="note.id"
+      :noteTitle="note.title"
+      :currentProjectId="note.project_id"
+      @close="showProjectModal = false"
+      @project-updated="handleProjectUpdate"
+    />
   </div>
 </template>
 
 <script>
 import { stripHtmlAndTruncate } from '../../../utils/textUtils'
+import ShareNoteModal from '../../ShareNoteModal.vue'
+import TagSelectorModal from '../../TagSelectorModal.vue'
+import ProjectSelectorModal from '../../ProjectSelectorModal.vue'
 
 export default {
   name: 'NoteCard',
+  components: {
+    ShareNoteModal,
+    TagSelectorModal,
+    ProjectSelectorModal
+  },
   props: {
     note: {
       type: Object,
       required: true
     }
   },
-  emits: ['edit', 'delete'],
+  emits: ['edit', 'delete', 'tags-updated', 'project-updated'],
+  data() {
+    return {
+      showShareModal: false,
+      showTagModal: false,
+      showProjectModal: false
+    }
+  },
   methods: {
     formatDate(dateString) {
       if (!dateString) return ''
@@ -68,6 +126,16 @@ export default {
 
     getPreview(content) {
       return stripHtmlAndTruncate(content, 150)
+    },
+
+    handleTagsUpdate(tags) {
+      // Émettre un événement pour notifier le parent des changements de tags
+      this.$emit('tags-updated', this.note.id, tags)
+    },
+
+    handleProjectUpdate(projectId) {
+      // Émettre un événement pour notifier le parent des changements de projet
+      this.$emit('project-updated', this.note.id, projectId)
     }
   }
 }

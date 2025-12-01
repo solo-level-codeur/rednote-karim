@@ -39,7 +39,9 @@
         <NoteCard 
           :note="note"
           @edit="$emit('edit-note', $event)"
-          @delete="$emit('delete-note', $event)" />
+          @delete="$emit('delete-note', $event)"
+          @tags-updated="$emit('tags-updated', $event)"
+          @project-updated="$emit('project-updated', $event)" />
       </div>
     </div>
   </div>
@@ -63,7 +65,7 @@ export default {
       default: false
     }
   },
-  emits: ['edit-note', 'delete-note']
+  emits: ['edit-note', 'delete-note', 'tags-updated', 'project-updated']
 }
 </script>
 

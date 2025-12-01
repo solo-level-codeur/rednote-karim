@@ -1,190 +1,131 @@
 <!--
   NotesView.vue
   
-  🎯 NOTES WORKSPACE ORCHESTRATEUR
-  Responsabilité: Coordonner les composants workspace et gérer l'état global
+  🎯 NOTES VIEW SIMPLIFIÉE
+  Responsabilité: Afficher et gérer les notes par projet
   
   Composants utilisés:
   - Sidebar (global) - Navigation latérale
-  - WorkspaceHeader (layout) - En-tête avec recherche
-  - NotesSidebar (layout) - Liste des notes
-  - NotesEditor (editor) - Éditeur principal
-  
-  État global:
-  - notes, currentNote, loading, searchQuery
-  
-  Méthodes API:
-  - fetchNotes(), createNote(), updateNote(), deleteNote()
+  - DashboardHeader - En-tête
+  - NotesList - Liste des notes
 -->
 <template>
-  <div class="notes-workspace">
+  <div class="notes-layout">
     <Sidebar />
     
-    <main class="workspace-main">
-      <WorkspaceHeader 
-        :searchQuery="searchQuery"
-        @update:searchQuery="searchQuery = $event"
-        @create-note="createNote" />
+    <main class="main-content">
+      <!-- Breadcrumb si on est dans un projet -->
+      <div v-if="project" class="breadcrumb-container bg-light px-3 py-2">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item">
+              <router-link to="/projects" class="text-decoration-none">
+                <i class="fas fa-folder me-1"></i>Projets
+              </router-link>
+            </li>
+            <li class="breadcrumb-item active">{{ project.name }}</li>
+          </ol>
+        </nav>
+      </div>
       
-      <div class="workspace-body">
-        <NotesSidebar 
-          :notes="notes"
-          :currentNote="currentNote"
-          :loading="loading"
-          :searchQuery="searchQuery"
-          @select-note="selectNote"
-          @delete-note="deleteNote"
-          @create-note="createNote" />
-        
-        <NotesEditor 
-          :currentNote="currentNote"
-          :loading="saving"
-          @update-note="updateNote"
-          @create-note="createNote" />
+      <div class="hero-section">
+        <DashboardHeader 
+          :userName="project ? `Projet: ${project.name}` : 'Notes'"
+          @logout="() => {}" />
+      </div>
+      
+      <div class="dashboard-content">
+        <NotesList />
       </div>
     </main>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
-import Sidebar from '../components/Side.vue'
-import WorkspaceHeader from '../components/workspace/layout/WorkspaceHeader.vue'
-import NotesSidebar from '../components/workspace/layout/NotesSidebar.vue'
-import NotesEditor from '../components/workspace/editor/NotesEditor.vue'
-import { notesAPI } from '../services/api'
+<script>
+import Sidebar from '../components/Sidebar.vue'
+import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
+import NotesList from '../components/notes/NotesList.vue'
+import { projectsAPI } from '../services/api'
 
-// State
-const notes = ref([])
-const currentNote = ref(null)
-const loading = ref(false)
-const saving = ref(false)
-const searchQuery = ref('')
-
-let saveTimeout = null
-
-// Fonctions principales
-const fetchNotes = async () => {
-  loading.value = true
-  try {
-    const response = await notesAPI.getAllNotes()
-    notes.value = response.data
-  } catch (error) {
-    // Erreur lors du chargement
-  } finally {
-    loading.value = false
-  }
-}
-
-const selectNote = (note) => {
-  currentNote.value = note
-}
-
-const createNote = async () => {
-  try {
-    const newNote = {
-      title: 'Nouvelle note',
-      content: ''
+export default {
+  name: 'NotesView',
+  components: {
+    Sidebar,
+    DashboardHeader,
+    NotesList
+  },
+  props: {
+    projectId: {
+      type: String,
+      default: null
+    },
+    key: {
+      type: String,
+      default: 'default'
     }
-    
-    const response = await notesAPI.createNote(newNote)
-    await fetchNotes()
-    
-    // Sélectionner la nouvelle note
-    if (response.data) {
-      currentNote.value = response.data
+  },
+  data() {
+    return {
+      project: null
     }
-  } catch (error) {
-    // Erreur lors du chargement
-    alert('Erreur lors de la création de la note')
-  }
-}
-
-const updateNote = (updatedNote) => {
-  // Mettre à jour la note actuelle
-  currentNote.value = updatedNote
-  
-  // Mettre à jour dans la liste
-  const index = notes.value.findIndex(note => note.id === updatedNote.id)
-  if (index !== -1) {
-    notes.value[index] = updatedNote
-  }
-  
-  // Sauvegarder avec debounce
-  debouncedSave()
-}
-
-const debouncedSave = () => {
-  if (saveTimeout) {
-    clearTimeout(saveTimeout)
-  }
-  
-  saving.value = true
-  
-  saveTimeout = setTimeout(async () => {
-    if (currentNote.value) {
+  },
+  async mounted() {
+    if (this.$route.params.projectId) {
       try {
-        await notesAPI.updateNote(currentNote.value.id, {
-          title: currentNote.value.title,
-          content: currentNote.value.content
-        })
+        const response = await projectsAPI.getProjectById(this.$route.params.projectId)
+        this.project = response.data
       } catch (error) {
-        // Erreur lors de la sauvegarde
-      } finally {
-        saving.value = false
+        console.error('Erreur lors du chargement du projet:', error)
       }
     }
-  }, 1000)
-}
-
-const deleteNote = async (noteId) => {
-  if (!confirm('Êtes-vous sûr de vouloir supprimer cette note ?')) return
-  
-  try {
-    await notesAPI.deleteNote(noteId)
-    if (currentNote.value?.id === noteId) {
-      currentNote.value = null
-    }
-    await fetchNotes()
-  } catch (error) {
-    // Erreur lors du chargement
-    alert('Erreur lors de la suppression')
   }
 }
-
-// Initialisation
-onMounted(() => {
-  fetchNotes()
-})
 </script>
 
 <style scoped>
-.notes-workspace {
+.notes-layout {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
 }
 
-.workspace-main {
+.main-content {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  margin-left: 250px; /* Espace pour la sidebar */
+  margin-left: 250px;
+  background: #f5f5f5;
 }
 
-.workspace-body {
-  flex: 1;
-  display: flex;
-  height: calc(100vh - 80px); /* Hauteur moins le header */
+.hero-section {
+  background: #f5f5f5;
 }
 
-/* Responsive */
+.dashboard-content {
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+  background: white;
+  margin: 0 2rem 2rem;
+}
+
+/* Breadcrumb styles */
+.breadcrumb-container {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: "›";
+}
+
 @media (max-width: 768px) {
-  .workspace-main {
+  .main-content {
     margin-left: 0;
   }
   
-  .workspace-body {
-    flex-direction: column;
+  .hero-section {
+    padding: 1rem;
+  }
+  
+  .dashboard-content {
+    margin: 0 1rem 1rem;
+    padding: 1rem;
   }
 }
 </style>

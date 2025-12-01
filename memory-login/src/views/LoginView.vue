@@ -7,7 +7,7 @@
     
     <div class="center-wrapper">
       <div class="text-center my-5">
-        <h1 class="display-4 fw-bold theme-text-primary">Welcome Back</h1>
+        <h1 class="display-4 fw-bold text-primary">Welcome Back</h1>
       </div>
       <LoginForm />
     </div>

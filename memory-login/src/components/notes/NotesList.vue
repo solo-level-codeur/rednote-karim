@@ -20,7 +20,8 @@
     
     <NotesHeader 
       :showCreateForm="showCreateForm" 
-      @create-note="showCreateForm = true" />
+      @create-note="showCreateForm = true"
+      @search="showSearchModal = true" />
 
     <NoteCreateForm 
       :show="showCreateForm"
@@ -41,22 +42,44 @@
       :notes="notes"
       :loading="loading"
       @edit-note="editNote"
-      @delete-note="deleteNoteConfirm" />
+      @delete-note="deleteNoteConfirm"
+      @tags-updated="handleTagsUpdated"
+      @project-updated="handleProjectUpdated" />
+
+    <!-- Note Editor Modal -->
+    <NoteEditorModal 
+      v-if="showNoteEditor"
+      :note="editingNote"
+      :projects="projects"
+      @save="handleNoteSave"
+      @cancel="handleNoteCancel"
+    />
+
+    <!-- Search Modal -->
+    <SearchModal
+      v-if="showSearchModal"
+      @close="showSearchModal = false"
+      @note-selected="handleNoteSelected"
+    />
   </div>
 </template>
 
 <script>
-import { notesAPI } from '../../services/api'
+import { notesAPI, projectsAPI, tagsAPI, shareAPI } from '../../services/api'
 import NotesHeader from './layout/NotesHeader.vue'
 import NoteCreateForm from './forms/NoteCreateForm.vue'
 import NotesGrid from './layout/NotesGrid.vue'
+import NoteEditorModal from '../NoteEditorModal.vue'
+import SearchModal from '../SearchModal.vue'
 
 export default {
   name: 'NotesList',
   components: {
     NotesHeader,
     NoteCreateForm,
-    NotesGrid
+    NotesGrid,
+    NoteEditorModal,
+    SearchModal
   },
   data() {
     return {
@@ -64,6 +87,10 @@ export default {
       loading: false,
       error: null,
       showCreateForm: false,
+      showNoteEditor: false,
+      showSearchModal: false,
+      editingNote: null,
+      projects: [],
       newNote: {
         title: '',
         content: ''
@@ -72,6 +99,7 @@ export default {
   },
   async mounted() {
     await this.fetchNotes()
+    await this.loadProjects()
   },
   methods: {
     async fetchNotes() {
@@ -89,8 +117,8 @@ export default {
       }
     },
     
-    async createNote() {
-      if (!this.newNote.title || !this.newNote.content) {
+    async createNote(noteData) {
+      if (!noteData.title || !noteData.content) {
         return
       }
 
@@ -98,13 +126,47 @@ export default {
       this.error = null
 
       try {
-        await notesAPI.createNote(this.newNote)
+        // Créer la note avec les données de base
+        const basicNoteData = {
+          title: noteData.title,
+          content: noteData.content,
+          projectId: noteData.projectId || null
+        }
+        
+        const noteResponse = await notesAPI.createNote(basicNoteData)
+        const createdNote = noteResponse.data
+        
+        // Associer les tags si présents
+        if (noteData.tags && noteData.tags.length > 0) {
+          for (const tag of noteData.tags) {
+            try {
+              await tagsAPI.addTagToNote(createdNote.id, tag.id)
+            } catch (tagError) {
+              console.error('Erreur lors de l\'ajout du tag:', tagError)
+            }
+          }
+        }
+        
+        // Partager la note si demandé
+        if (noteData.shareSettings?.shouldShare && noteData.shareSettings?.shareEmail) {
+          try {
+            await shareAPI.shareNote(createdNote.id, {
+              email: noteData.shareSettings.shareEmail,
+              permission: 'read' // Permission par défaut
+            })
+          } catch (shareError) {
+            console.error('Erreur lors du partage:', shareError)
+            // Ne pas faire échouer la création pour une erreur de partage
+          }
+        }
+        
         this.newNote = { title: '', content: '' }
         this.showCreateForm = false
         await this.fetchNotes()
       } catch (error) {
         // Erreur lors de la création
         this.error = 'Erreur lors de la création de la note'
+        console.error('Erreur lors de la création de la note:', error)
       } finally {
         this.loading = false
       }
@@ -116,8 +178,8 @@ export default {
     },
 
     editNote(note) {
-      // Rediriger vers NotesView pour l'édition avec TipTap
-      this.$router.push('/notes')
+      this.editingNote = note
+      this.showNoteEditor = true
     },
 
     async deleteNoteConfirm(note) {
@@ -139,6 +201,44 @@ export default {
       } finally {
         this.loading = false
       }
+    },
+
+    handleTagsUpdated(noteId, tags) {
+      console.log('Tags mis à jour pour la note:', noteId, tags)
+      // Optionnel: mettre à jour localement la note avec les nouveaux tags
+      // ou rafraîchir les données si nécessaire
+    },
+
+    handleProjectUpdated(noteId, projectId) {
+      console.log('Projet mis à jour pour la note:', noteId, projectId)
+      // Optionnel: mettre à jour localement la note avec le nouveau projet
+      // ou rafraîchir les données si nécessaire
+    },
+
+    async loadProjects() {
+      try {
+        const response = await projectsAPI.getAllProjects()
+        this.projects = response.data
+      } catch (error) {
+        console.error('Erreur lors du chargement des projets:', error)
+      }
+    },
+
+    handleNoteSave(savedNote) {
+      // Rafraîchir la liste des notes
+      this.fetchNotes()
+      this.showNoteEditor = false
+      this.editingNote = null
+    },
+
+    handleNoteCancel() {
+      this.showNoteEditor = false
+      this.editingNote = null
+    },
+
+    handleNoteSelected(note) {
+      this.showSearchModal = false
+      this.editNote(note)
     }
   }
 }

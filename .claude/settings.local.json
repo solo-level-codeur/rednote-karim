@@ -5,7 +5,11 @@
       "Read(//Users/abdelkarimhessaine/Desktop/elite project /poc 3/**)",
       "Read(//Users/abdelkarimhessaine/Desktop/elite project /**)",
       "Read(//Users/abdelkarimhessaine/Desktop/elite project /memory-login/**)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Read(//Users/abdelkarimhessaine/Desktop/elite project /**)",
+      "Bash(npm run dev:*)",
+      "Read(//Users/abdelkarimhessaine/Desktop/elite project /SQL/**)",
+      "Bash(mysql:*)"
     ],
     "deny": [],
     "ask": []
