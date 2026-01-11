@@ -123,9 +123,9 @@
 </template>
 
 <script>
-import TiptapEditor from '../../TiptapEditor.vue'
-import TagSelector from '../../TagSelector.vue'
-import ProjectSelector from '../../ProjectSelector.vue'
+import TiptapEditor from './TiptapEditor.vue'
+import TagSelector from './TagSelector.vue'
+import ProjectSelector from './ProjectSelector.vue'
 
 export default {
   name: 'NoteCreateForm',

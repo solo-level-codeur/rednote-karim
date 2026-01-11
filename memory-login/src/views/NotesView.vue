@@ -43,8 +43,8 @@
 
 <script>
 import Sidebar from '../components/Sidebar.vue'
-import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
-import NotesList from '../components/notes/NotesList.vue'
+import DashboardHeader from '../components/DashboardHeader.vue'
+import NotesList from '../components/NotesList.vue'
 import { projectsAPI } from '../services/api'
 
 export default {

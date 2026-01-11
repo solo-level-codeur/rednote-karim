@@ -1,7 +1,7 @@
 <template>
   <div class="editor-container">
     
-    <EditorToolbar :editor="editor" />
+    <SimpleEditorToolbar :editor="editor" />
     
     <EditorContent :editor="editor" class="editor-content" />
   </div>
@@ -20,14 +20,14 @@ import Image from '@tiptap/extension-image'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import YouTube from '@tiptap/extension-youtube'
-import EditorToolbar from './toolbar/EditorToolbar.vue'
+import SimpleEditorToolbar from './SimpleEditorToolbar.vue'
 
 export default {
   name: 'CompleteEditor',
   
   components: {
     EditorContent,
-    EditorToolbar
+    SimpleEditorToolbar
   },
   
   props: {

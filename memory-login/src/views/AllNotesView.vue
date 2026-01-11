@@ -37,9 +37,9 @@
 
 <script>
 import Sidebar from '../components/Sidebar.vue'
-import NoteCreateForm from '../components/notes/forms/NoteCreateForm.vue'
-import SearchFilterBar from '../components/common/SearchFilterBar.vue'
-import NotesTable from '../components/common/NotesTable.vue'
+import NoteCreateForm from '../components/NoteCreateForm.vue'
+import SearchFilterBar from '../components/SearchFilterBar.vue'
+import NotesTable from '../components/NotesTable.vue'
 import { notesAPI, shareAPI } from '../services/api'
 import { authStore } from '../stores/auth'
 

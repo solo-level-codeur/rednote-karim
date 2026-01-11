@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import NoteCard from '../items/NoteCard.vue'
+import NoteCard from './NoteCard.vue'
 
 export default {
   name: 'NotesGrid',

@@ -56,8 +56,8 @@
 
 <script>
 import Sidebar from '../components/Sidebar.vue'
-import ProfileHeader from '../components/profile/ProfileHeader.vue'
-import ProfileInfo from '../components/profile/ProfileInfo.vue'
+import ProfileHeader from '../components/ProfileHeader.vue'
+import ProfileInfo from '../components/ProfileInfo.vue'
 import { authStore } from '../stores/auth'
 import { profileAPI } from '../services/api'
 // Utilise Bootstrap CSS avec Vue classique

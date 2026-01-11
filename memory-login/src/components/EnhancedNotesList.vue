@@ -84,7 +84,7 @@
 
 <script>
 import { notesAPI } from '@/services/api'
-import NoteCard from './notes/items/NoteCard.vue'
+import NoteCard from './NoteCard.vue'
 import NoteListItem from './NoteListItem.vue'
 
 export default {

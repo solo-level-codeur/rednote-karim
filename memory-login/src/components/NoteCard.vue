@@ -92,10 +92,10 @@
 </template>
 
 <script>
-import { stripHtmlAndTruncate } from '../../../utils/textUtils'
-import ShareNoteModal from '../../ShareNoteModal.vue'
-import TagSelectorModal from '../../TagSelectorModal.vue'
-import ProjectSelectorModal from '../../ProjectSelectorModal.vue'
+import { stripHtmlAndTruncate } from '../utils/textUtils'
+import ShareNoteModal from './ShareNoteModal.vue'
+import TagSelectorModal from './TagSelectorModal.vue'
+import ProjectSelectorModal from './ProjectSelectorModal.vue'
 
 export default {
   name: 'NoteCard',

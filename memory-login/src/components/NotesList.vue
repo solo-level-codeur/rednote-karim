@@ -65,12 +65,12 @@
 </template>
 
 <script>
-import { notesAPI, projectsAPI, tagsAPI, shareAPI } from '../../services/api'
-import NotesHeader from './layout/NotesHeader.vue'
-import NoteCreateForm from './forms/NoteCreateForm.vue'
-import NotesGrid from './layout/NotesGrid.vue'
-import NoteEditorModal from '../NoteEditorModal.vue'
-import SearchModal from '../SearchModal.vue'
+import { notesAPI, projectsAPI, tagsAPI, shareAPI } from '../services/api'
+import NotesHeader from './NotesHeader.vue'
+import NoteCreateForm from './NoteCreateForm.vue'
+import NotesGrid from './NotesGrid.vue'
+import NoteEditorModal from './NoteEditorModal.vue'
+import SearchModal from './SearchModal.vue'
 
 export default {
   name: 'NotesList',

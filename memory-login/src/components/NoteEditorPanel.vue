@@ -78,7 +78,7 @@
 
         <!-- Barre d'outils -->
         <div class="toolbar-section mt-3">
-          <EditorToolbar :editor="editor" />
+          <SimpleEditorToolbar :editor="editor" />
         </div>
       </div>
 
@@ -165,7 +165,7 @@ import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
-import EditorToolbar from './toolbar/EditorToolbar.vue'
+import SimpleEditorToolbar from './SimpleEditorToolbar.vue'
 import ShareNoteModal from './ShareNoteModal.vue'
 import TagModal from './TagModal.vue'
 import { notesAPI, tagsAPI, shareAPI } from '@/services/api'
@@ -175,7 +175,7 @@ export default {
   name: 'NoteEditorPanel',
   components: {
     EditorContent,
-    EditorToolbar,
+    SimpleEditorToolbar,
     ShareNoteModal,
     TagModal
   },
