@@ -22,5 +22,6 @@ router.put('/note/:noteId/user/:userId', updateSharePermissionController); // PU
 router.get('/notes', getSharedNotesController);              // GET /api/share/notes (notes partagées avec moi)
 router.get('/note/:noteId', getNoteSharesController);        // GET /api/share/note/1 (qui a accès à cette note)
 router.get('/accessible', getAllAccessibleNotesController);  // GET /api/share/accessible (toutes mes notes accessibles)
+router.get('/accessible/project/:projectId', getAllAccessibleNotesController);  // GET /api/share/accessible/project/1 (notes accessibles pour un projet)
 
 module.exports = router;

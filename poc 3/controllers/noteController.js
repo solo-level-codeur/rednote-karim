@@ -1,4 +1,4 @@
-const { createNote, getAllNotes, getNoteById, updateNote, deleteNote, searchNotes, getNotesWithFilters } = require('../models/noteModel');
+const { createNote, getAllNotes, getAllNotesFromProject, getNoteById, updateNote, deleteNote, searchNotes, getNotesWithFilters } = require('../models/noteModel');
 
 // Créer une nouvelle note
 const createNoteController = async (req, res) => {
@@ -149,9 +149,32 @@ const getFilteredNotesController = async (req, res) => {
   }
 };
 
+// Obtenir toutes les notes d'un projet spécifique
+const getAllNotesFromProjectController = async (req, res) => {
+  const { projectId } = req.params;
+  const userId = req.user.id;
+
+  try {
+    const notes = await getAllNotesFromProject(projectId, userId);
+    res.json({
+      projectId: projectId,
+      count: notes.length,
+      notes: notes
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des notes du projet :', error);
+    if (error.message === 'Accès refusé au projet') {
+      res.status(403).json({ message: 'Vous n\'avez pas accès à ce projet' });
+    } else {
+      res.status(500).json({ message: 'Erreur du serveur' });
+    }
+  }
+};
+
 module.exports = { 
   createNoteController, 
   getAllNotesController, 
+  getAllNotesFromProjectController,
   getNoteByIdController, 
   updateNoteController, 
   deleteNoteController,

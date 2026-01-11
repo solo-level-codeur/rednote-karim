@@ -6,6 +6,37 @@ const getAllNotes = async (userId) => {
   return rows;
 };
 
+// Obtenir toutes les notes d'un projet (pour les membres du projet)
+const getAllNotesFromProject = async (projectId, userId) => {
+  // Vérifier que l'utilisateur a accès au projet
+  const [accessCheck] = await db.query(`
+    SELECT 1 FROM projects p
+    LEFT JOIN project_members pm ON p.id = pm.id_projects
+    WHERE p.id = ? AND (p.id_owner = ? OR pm.id_users = ?)
+    LIMIT 1
+  `, [projectId, userId, userId]);
+  
+  if (accessCheck.length === 0) {
+    throw new Error('Accès refusé au projet');
+  }
+  
+  // Récupérer toutes les notes du projet avec info sur l'auteur
+  const [rows] = await db.query(`
+    SELECT n.*, 
+           u.firstname as author_firstname,
+           u.lastname as author_lastname,
+           p.name as project_name,
+           CASE WHEN n.id_users = ? THEN 'owner' ELSE 'member' END as note_role
+    FROM notes n
+    INNER JOIN users u ON n.id_users = u.id_users
+    INNER JOIN projects p ON n.id_projects = p.id
+    WHERE n.id_projects = ?
+    ORDER BY n.updated_date DESC
+  `, [userId, projectId]);
+  
+  return rows;
+};
+
 // Obtenir une note spécifique par son ID et l'ID de l'utilisateur
 const getNoteById = async (id, userId) => {
   const [rows] = await db.query('SELECT * FROM notes WHERE id = ? AND id_users = ?', [id, userId]);
@@ -146,6 +177,7 @@ const getNotesWithFilters = async (userId, filters = {}) => {
 
 module.exports = {
   getAllNotes,
+  getAllNotesFromProject,
   getNoteById,
   createNote,
   updateNote,

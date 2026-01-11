@@ -24,27 +24,33 @@
                   {{ project.name }}
                 </router-link>
               </h5>
-              <div class="dropdown">
+              <div class="btn-group-vertical btn-group-sm">
                 <button 
-                  class="btn btn-sm btn-outline-secondary dropdown-toggle" 
-                  type="button" 
-                  :id="`dropdown-${project.id}`"
-                  data-bs-toggle="dropdown"
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  @click="editProject(project)"
+                  title="Modifier"
                 >
-                  <i class="fas fa-ellipsis-v"></i>
+                  <i class="fas fa-edit"></i>
                 </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a class="dropdown-item" href="#" @click="editProject(project)">
-                      <i class="fas fa-edit"></i> Modifier
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item text-danger" href="#" @click="deleteProject(project.id)">
-                      <i class="fas fa-trash"></i> Supprimer
-                    </a>
-                  </li>
-                </ul>
+                <button 
+                  type="button"
+                  class="btn btn-sm btn-outline-info"
+                  @click="manageMembers(project)"
+                  data-bs-toggle="modal" 
+                  data-bs-target="#projectMembersModal"
+                  title="Gérer les membres"
+                >
+                  <i class="fas fa-users"></i>
+                </button>
+                <button 
+                  type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  @click="deleteProject(project.id)"
+                  title="Supprimer"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
               </div>
             </div>
             
@@ -80,6 +86,13 @@
       @cancel="handleCancelProject"
     />
 
+    <!-- Modal de gestion des membres -->
+    <ProjectMembersModal 
+      :project="managingMembersProject"
+      @members-updated="handleMembersUpdated"
+      @show-error="handleError"
+    />
+
     <!-- Loading -->
     <div v-if="loading" class="text-center py-4">
       <div class="spinner-border text-primary" role="status">
@@ -92,18 +105,22 @@
 <script>
 import { projectsAPI } from '@/services/api'
 import ProjectModal from './ProjectModal.vue'
+import ProjectMembersModal from './ProjectMembersModal.vue'
 
 export default {
   name: 'ProjectManager',
   components: {
-    ProjectModal
+    ProjectModal,
+    ProjectMembersModal
   },
   data() {
     return {
       projects: [],
       loading: false,
       showCreateModal: false,
-      editingProject: null
+      editingProject: null,
+      managingMembersProject: null,
+      error: null
     }
   },
   mounted() {
@@ -152,13 +169,38 @@ export default {
           this.$toast.success('Projet modifié avec succès')
         } else {
           // Création
-          const response = await projectsAPI.createProject(projectData)
-          this.projects.unshift({
+          const response = await projectsAPI.createProject({
+            name: projectData.name,
+            description: projectData.description
+          })
+          
+          const newProject = {
             ...projectData,
             id: response.data.id,
             creation_date: new Date().toISOString(),
             status: 'New'
-          })
+          }
+          
+          this.projects.unshift(newProject)
+          
+          // Ajouter les membres si spécifiés
+          if (projectData.members && projectData.members.length > 0) {
+            console.log('🔄 Ajout des membres au nouveau projet:', projectData.members)
+            
+            for (const member of projectData.members) {
+              try {
+                await projectsAPI.addProjectMember(newProject.id, {
+                  userId: member.userId,
+                  role: member.role
+                })
+                console.log(`✅ Membre ${member.userId} ajouté avec le rôle ${member.role}`)
+              } catch (memberError) {
+                console.error(`❌ Erreur lors de l'ajout du membre ${member.userId}:`, memberError)
+                // Ne pas faire échouer la création pour une erreur d'ajout de membre
+              }
+            }
+          }
+          
           this.$toast.success('Projet créé avec succès')
         }
       } catch (error) {
@@ -171,6 +213,26 @@ export default {
     handleCancelProject() {
       this.showCreateModal = false
       this.editingProject = null
+    },
+
+    manageMembers(project) {
+      console.log('🚀 Ouverture modal membres pour projet:', project?.name)
+      this.managingMembersProject = project
+      // Le modal s'ouvrira automatiquement grâce aux attributs data-bs-*
+    },
+
+    handleMembersUpdated() {
+      console.log('✅ Membres mis à jour, rechargement des projets...')
+      this.loadProjects()
+    },
+
+    handleError(message) {
+      this.error = message
+      this.$toast?.error(message) || console.error(message)
+      // Effacer l'erreur après 5 secondes
+      setTimeout(() => {
+        this.error = null
+      }, 5000)
     },
 
     formatDate(dateString) {
@@ -207,7 +269,12 @@ export default {
   border-top: 1px solid #eee;
 }
 
-.dropdown-toggle::after {
-  display: none;
+.btn-group-vertical .btn {
+  border-radius: 0.25rem !important;
+  margin-bottom: 2px;
+}
+
+.btn-group-vertical .btn:last-child {
+  margin-bottom: 0;
 }
 </style>

@@ -35,7 +35,7 @@
       </div>
       
       <div class="dashboard-content">
-        <NotesList />
+        <NotesList :projectId="$route.params.projectId" />
       </div>
     </main>
   </div>

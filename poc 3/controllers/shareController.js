@@ -163,9 +163,10 @@ const updateSharePermissionController = async (req, res) => {
 // Obtenir toutes les notes accessibles (propres + partagées)
 const getAllAccessibleNotesController = async (req, res) => {
   const userId = req.user.id;
+  const { projectId } = req.params; // Peut être undefined si pas de filtre
 
   try {
-    const notes = await getAllAccessibleNotes(userId);
+    const notes = await getAllAccessibleNotes(userId, projectId);
     res.json({
       count: notes.length,
       notes

@@ -94,8 +94,8 @@ const updateSharePermission = async (noteId, userId, newPermission, ownerId) => 
 };
 
 // Obtenir toutes les notes accessibles par un utilisateur (propres + partagées)
-const getAllAccessibleNotes = async (userId) => {
-  const [rows] = await db.query(`
+const getAllAccessibleNotes = async (userId, projectId = null) => {
+  let query = `
     SELECT 
       n.*,
       p.name as project_name,
@@ -103,8 +103,16 @@ const getAllAccessibleNotes = async (userId) => {
       'write' as permission
     FROM notes n
     LEFT JOIN projects p ON n.id_projects = p.id
-    WHERE n.id_users = ?
+    WHERE n.id_users = ?`;
+  
+  let params = [userId];
+  
+  if (projectId) {
+    query += ` AND n.id_projects = ?`;
+    params.push(parseInt(projectId, 10));
+  }
 
+  query += `
     UNION
 
     SELECT 
@@ -115,10 +123,22 @@ const getAllAccessibleNotes = async (userId) => {
     FROM notes n
     INNER JOIN note_shares ns ON n.id = ns.id_notes
     LEFT JOIN projects p ON n.id_projects = p.id
-    WHERE ns.id_users = ?
+    WHERE ns.id_users = ?`;
+    
+  params.push(userId);
+  
+  if (projectId) {
+    query += ` AND n.id_projects = ?`;
+    params.push(parseInt(projectId, 10));
+  }
 
-    ORDER BY updated_date DESC
-  `, [userId, userId]);
+  query += ` ORDER BY updated_date DESC`;
+  
+  console.log('SQL Query:', query);
+  console.log('Params:', params);
+  
+  const [rows] = await db.query(query, params);
+  console.log('Results:', rows.length, 'rows');
   return rows;
 };
 

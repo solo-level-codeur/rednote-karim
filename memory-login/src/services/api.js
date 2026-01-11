@@ -41,7 +41,8 @@ export const authAPI = {
 }
 
 export const notesAPI = {
-  getAllNotes: () => api.get('/notes/'),
+  getAllNotes: () => api.get('/notes'),
+  getAllNotesFromProject: (projectId) => api.get(`/notes/project/${projectId}`),
   getNoteById: (id) => api.get(`/notes/note/${id}`),
   createNote: (noteData) => api.post('/notes/note', noteData),
   updateNote: (id, noteData) => api.put(`/notes/note/${id}`, noteData),
@@ -63,7 +64,13 @@ export const projectsAPI = {
   getProjectById: (id) => api.get(`/projects/${id}`),
   createProject: (projectData) => api.post('/projects', projectData),
   updateProject: (id, projectData) => api.put(`/projects/${id}`, projectData),
-  deleteProject: (id) => api.delete(`/projects/${id}`)
+  deleteProject: (id) => api.delete(`/projects/${id}`),
+  
+  // Gestion des membres
+  getProjectMembers: (projectId) => api.get(`/projects/${projectId}/members`),
+  addProjectMember: (projectId, memberData) => api.post(`/projects/${projectId}/members`, memberData),
+  removeProjectMember: (projectId, userId) => api.delete(`/projects/${projectId}/members/${userId}`),
+  updateMemberRole: (projectId, userId, roleData) => api.put(`/projects/${projectId}/members/${userId}`, roleData)
 }
 
 export const tagsAPI = {
@@ -83,7 +90,8 @@ export const shareAPI = {
   unshareNote: (noteId, userId) => api.delete(`/share/note/${noteId}/user/${userId}`),
   updateSharePermission: (noteId, userId, permissionData) => api.put(`/share/note/${noteId}/user/${userId}`, permissionData),
   getSharedNotes: () => api.get('/share/notes'),
-  getNoteShares: (noteId) => api.get(`/share/note/${noteId}`)
+  getNoteShares: (noteId) => api.get(`/share/note/${noteId}`),
+  getAllAccessibleNotesByProject: (projectId) => api.get(`/share/accessible/project/${projectId}`)
 }
 
 export const commentsAPI = {

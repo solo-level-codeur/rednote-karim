@@ -3,12 +3,6 @@
     <Sidebar />
     
     <main class="main-content">
-      <div class="hero-section">
-        <DashboardHeader 
-          userName="All Notes"
-          @logout="() => {}" />
-      </div>
-
       <div class="dashboard-content">
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -38,21 +32,12 @@
       @cancel="showCreateForm = false" 
     />
 
-    <!-- Note Editor/Viewer Modal -->
-    <NoteEditorModal 
-      v-if="selectedNote"
-      :note="selectedNote"
-      @save="handleNoteSave"
-      @cancel="selectedNote = null"
-    />
   </div>
 </template>
 
 <script>
 import Sidebar from '../components/Sidebar.vue'
-import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
 import NoteCreateForm from '../components/notes/forms/NoteCreateForm.vue'
-import NoteEditorModal from '../components/NoteEditorModal.vue'
 import SearchFilterBar from '../components/common/SearchFilterBar.vue'
 import NotesTable from '../components/common/NotesTable.vue'
 import { notesAPI, shareAPI } from '../services/api'
@@ -62,9 +47,7 @@ export default {
   name: 'AllNotesView',
   components: {
     Sidebar,
-    DashboardHeader,
     NoteCreateForm,
-    NoteEditorModal,
     SearchFilterBar,
     NotesTable
   },
@@ -134,7 +117,8 @@ export default {
       }
     },
     openNote(note) {
-      this.selectedNote = note
+      // Aller vers la page dédiée au lieu du modal
+      this.$router.push(`/notes/${note.id}`)
     },
     async handleCreateNote(noteData) {
       try {
@@ -165,10 +149,6 @@ export default {
   background: #f5f5f5;
 }
 
-.hero-section {
-  background: #f5f5f5;
-}
-
 .dashboard-content {
   padding-top: 2rem;
   padding-bottom: 3rem;
@@ -183,9 +163,6 @@ export default {
     margin-left: 0;
   }
   
-  .hero-section {
-    padding: 1rem;
-  }
   
   .dashboard-content {
     margin: 0 1rem 1rem;

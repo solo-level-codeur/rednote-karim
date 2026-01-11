@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createNoteController, getAllNotesController, getNoteByIdController, updateNoteController, deleteNoteController, searchNotesController, getFilteredNotesController } = require('../controllers/noteController');
+const { createNoteController, getAllNotesController, getAllNotesFromProjectController, getNoteByIdController, updateNoteController, deleteNoteController, searchNotesController, getFilteredNotesController } = require('../controllers/noteController');
 const { registerUser, loginUser, getUserProfile } = require('../controllers/userController');
 const { protect, authorizeNoteOwner } = require('../middlewares/authMiddleware');
 
@@ -27,5 +27,8 @@ router.delete('/note/:id', protect, authorizeNoteOwner, deleteNoteController);
 // Routes de recherche et filtrage
 router.get('/search', protect, searchNotesController);        // GET /api/notes/search?q=terme
 router.get('/filter', protect, getFilteredNotesController);   // GET /api/notes/filter?projectId=1&sortBy=title
+
+// Route pour récupérer toutes les notes d'un projet
+router.get('/project/:projectId', protect, getAllNotesFromProjectController);  // GET /api/notes/project/:projectId
 
 module.exports = router;

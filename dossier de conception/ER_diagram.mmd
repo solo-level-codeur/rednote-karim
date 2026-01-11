@@ -1,0 +1,36 @@
+```mermaid
+erDiagram
+    USERS ||--o{ NOTES : creates
+    USERS ||--o{ PROJECT_MEMBERS : participates
+    USERS ||--o{ ROLE_PERMISSIONS : has
+    USERS ||--o{ USER_SKILLS : has
+    USERS ||--o{ TASKS : assigned_to
+    USERS ||--o{ PROJECTS : owns
+    USERS ||--o{ COMMENTS : writes
+    USERS ||--o{ DOCUMENTS : uploads
+    USERS ||--o{ NOTE_SHARES : receives
+    
+    ROLES ||--o{ ROLE_PERMISSIONS : defines
+    ROLES ||--o{ USERS : assigned_to
+    
+    PERMISSIONS ||--o{ ROLE_PERMISSIONS : granted
+    
+    SKILLS ||--o{ USER_SKILLS : acquired
+    
+    PROJECTS ||--o{ NOTES : contains
+    PROJECTS ||--o{ PROJECT_MEMBERS : includes
+    PROJECTS ||--o{ PROJECT_TAGS : tagged
+    PROJECTS ||--o{ TASKS : contains
+    
+    NOTES ||--o{ NOTE_TAGS : tagged
+    NOTES ||--o{ NOTE_DOCUMENTS : attached
+    NOTES ||--o{ NOTE_SHARES : shared
+    NOTES ||--o{ COMMENTS : has
+    
+    TAGS ||--o{ NOTE_TAGS : tags
+    TAGS ||--o{ PROJECT_TAGS : tags
+    
+    DOCUMENTS ||--o{ NOTE_DOCUMENTS : attached
+    
+    TASKS }|..|{ USERS : assigned
+```

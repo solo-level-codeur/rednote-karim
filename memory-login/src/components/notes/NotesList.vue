@@ -81,6 +81,12 @@ export default {
     NoteEditorModal,
     SearchModal
   },
+  props: {
+    projectId: {
+      type: String,
+      default: null
+    }
+  },
   data() {
     return {
       notes: [],
@@ -101,17 +107,43 @@ export default {
     await this.fetchNotes()
     await this.loadProjects()
   },
+  watch: {
+    // Recharger les notes quand on change de projet
+    projectId(newProjectId, oldProjectId) {
+      if (newProjectId !== oldProjectId) {
+        console.log('🔄 Changement de projet:', oldProjectId, '→', newProjectId)
+        this.fetchNotes()
+      }
+    }
+  },
   methods: {
     async fetchNotes() {
       this.loading = true
       this.error = null
       
       try {
-        const response = await notesAPI.getAllNotes()
-        this.notes = response.data
+        console.log('🔍 Chargement des notes pour projectId:', this.projectId)
+        
+        if (this.projectId) {
+          // Si on est dans un projet spécifique, récupérer seulement les notes de ce projet
+          const response = await notesAPI.getAllNotesFromProject(this.projectId)
+          console.log('📋 Notes du projet reçues:', response.data)
+          this.notes = response.data.notes || []
+        } else {
+          // Sinon récupérer toutes les notes de l'utilisateur
+          const response = await notesAPI.getAllNotes()
+          console.log('📝 Notes personnelles reçues:', response.data)
+          this.notes = response.data
+        }
+        
+        console.log(`✅ ${this.notes.length} notes chargées`)
       } catch (error) {
-        // Erreur lors du chargement des notes
-        this.error = 'Erreur lors du chargement des notes'
+        console.error('❌ Erreur lors du chargement des notes:', error)
+        if (error.response?.status === 403) {
+          this.error = 'Vous n\'avez pas accès à ce projet'
+        } else {
+          this.error = 'Erreur lors du chargement des notes'
+        }
       } finally {
         this.loading = false
       }
