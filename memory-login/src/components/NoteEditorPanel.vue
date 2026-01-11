@@ -138,12 +138,20 @@
     </div>
 
     <!-- Modals -->
-    <ShareNoteModal
+    <SimpleModal
       v-if="showShareModal && note"
-      :noteId="note.id"
-      :noteTitle="note.title"
+      :show="showShareModal"
+      :title="`Partager : ${note.title}`"
+      icon="fas fa-share-alt"
+      size="lg"
       @close="showShareModal = false"
-    />
+    >
+      <ShareForm
+        :noteId="note.id"
+        @shared="handleNoteShared"
+        @share-removed="handleShareRemoved"
+      />
+    </SimpleModal>
 
     <TagModal
       v-if="showTagModal"
@@ -166,7 +174,8 @@ import Image from '@tiptap/extension-image'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import SimpleEditorToolbar from './SimpleEditorToolbar.vue'
-import ShareNoteModal from './ShareNoteModal.vue'
+import SimpleModal from './SimpleModal.vue'
+import ShareForm from './ShareForm.vue'
 import TagModal from './TagModal.vue'
 import { notesAPI, tagsAPI, shareAPI } from '@/services/api'
 import { authStore } from '@/stores/auth'
@@ -176,7 +185,8 @@ export default {
   components: {
     EditorContent,
     SimpleEditorToolbar,
-    ShareNoteModal,
+    SimpleModal,
+    ShareForm,
     TagModal
   },
   props: {

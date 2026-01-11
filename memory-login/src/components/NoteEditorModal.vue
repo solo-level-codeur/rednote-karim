@@ -126,12 +126,20 @@
     </div>
 
     <!-- Share Modal -->
-    <ShareNoteModal
+    <SimpleModal
       v-if="showShareModal && note"
-      :noteId="note.id"
-      :noteTitle="note.title"
+      :show="showShareModal"
+      :title="`Partager : ${note.title}`"
+      icon="fas fa-share-alt"
+      size="lg"
       @close="showShareModal = false"
-    />
+    >
+      <ShareForm
+        :noteId="note.id"
+        @shared="handleNoteShared"
+        @share-removed="handleShareRemoved"
+      />
+    </SimpleModal>
   </div>
 </template>
 
@@ -140,14 +148,16 @@ import { Editor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { notesAPI, tagsAPI } from '@/services/api'
 import CommentsSection from './CommentsSection.vue'
-import ShareNoteModal from './ShareNoteModal.vue'
+import SimpleModal from './SimpleModal.vue'
+import ShareForm from './ShareForm.vue'
 import { authStore } from '@/stores/auth'
 
 export default {
   name: 'NoteEditorModal',
   components: {
     CommentsSection,
-    ShareNoteModal
+    SimpleModal,
+    ShareForm
   },
   props: {
     note: {

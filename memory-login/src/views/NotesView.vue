@@ -6,7 +6,7 @@
   
   Composants utilisés:
   - Sidebar (global) - Navigation latérale
-  - DashboardHeader - En-tête
+  - AppHeader - En-tête
   - NotesList - Liste des notes
 -->
 <template>
@@ -29,9 +29,10 @@
       </div>
       
       <div class="hero-section">
-        <DashboardHeader 
-          :userName="project ? `Projet: ${project.name}` : 'Notes'"
-          @logout="() => {}" />
+        <AppHeader 
+          :greeting="project ? `Projet: ${project.name}` : 'Notes'"
+          :subtitle="'Organisez vos idées, créez vos notes'"
+          :showLogout="false" />
       </div>
       
       <div class="dashboard-content">
@@ -43,7 +44,7 @@
 
 <script>
 // Sidebar est maintenant un composant global (voir main.js)
-import DashboardHeader from '../components/DashboardHeader.vue'
+import AppHeader from '../components/AppHeader.vue'
 import NotesList from '../components/NotesList.vue'
 import { projectsAPI } from '../services/api'
 
@@ -51,7 +52,7 @@ export default {
   name: 'NotesView',
   components: {
     
-    DashboardHeader,
+    AppHeader,
     NotesList
   },
   props: {

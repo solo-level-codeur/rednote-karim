@@ -56,11 +56,18 @@
     />
 
     <!-- Search Modal -->
-    <SearchModal
+    <SimpleModal
       v-if="showSearchModal"
+      :show="showSearchModal"
+      title="Rechercher des notes"
+      icon="fas fa-search"
+      size="lg"
       @close="showSearchModal = false"
-      @note-selected="handleNoteSelected"
-    />
+    >
+      <SearchForm
+        @note-selected="handleNoteSelected"
+      />
+    </SimpleModal>
   </div>
 </template>
 
@@ -70,7 +77,8 @@ import NotesHeader from './NotesHeader.vue'
 import NoteCreateForm from './NoteCreateForm.vue'
 import NotesGrid from './NotesGrid.vue'
 import NoteEditorModal from './NoteEditorModal.vue'
-import SearchModal from './SearchModal.vue'
+import SimpleModal from './SimpleModal.vue'
+import SearchForm from './SearchForm.vue'
 
 export default {
   name: 'NotesList',
@@ -79,7 +87,8 @@ export default {
     NoteCreateForm,
     NotesGrid,
     NoteEditorModal,
-    SearchModal
+    SimpleModal,
+    SearchForm
   },
   props: {
     projectId: {

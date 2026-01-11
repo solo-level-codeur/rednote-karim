@@ -65,44 +65,65 @@
     </div>
     
     <!-- Modals -->
-    <ShareNoteModal 
+    <SimpleModal 
       v-if="showShareModal"
-      :noteId="note.id"
-      :noteTitle="note.title"
+      :show="showShareModal"
+      :title="`Partager : ${note.title}`"
+      icon="fas fa-share-alt"
+      size="lg"
       @close="showShareModal = false"
-    />
+    >
+      <ShareForm 
+        :noteId="note.id"
+        @shared="handleNoteShared"
+        @share-removed="handleShareRemoved"
+      />
+    </SimpleModal>
     
-    <TagSelectorModal 
+    <SimpleModal 
       v-if="showTagModal"
-      :noteId="note.id"
-      :noteTitle="note.title"
+      :show="showTagModal"
+      :title="`Gérer les tags : ${note.title}`"
+      icon="fas fa-tags"
+      size="lg"
       @close="showTagModal = false"
-      @tags-updated="handleTagsUpdate"
-    />
+    >
+      <TagSelector 
+        :noteId="note.id"
+        @update:modelValue="handleTagsUpdate"
+      />
+    </SimpleModal>
     
-    <ProjectSelectorModal 
+    <SimpleModal 
       v-if="showProjectModal"
-      :noteId="note.id"
-      :noteTitle="note.title"
-      :currentProjectId="note.project_id"
+      :show="showProjectModal"
+      :title="`Assigner à un projet : ${note.title}`"
+      icon="fas fa-folder"
       @close="showProjectModal = false"
-      @project-updated="handleProjectUpdate"
-    />
+    >
+      <ProjectSelector 
+        :noteId="note.id"
+        :currentProjectId="note.project_id"
+        @update:modelValue="handleProjectUpdate"
+      />
+    </SimpleModal>
   </div>
 </template>
 
 <script>
 import { stripHtmlAndTruncate } from '../utils/textUtils'
-import ShareNoteModal from './ShareNoteModal.vue'
-import TagSelectorModal from './TagSelectorModal.vue'
-import ProjectSelectorModal from './ProjectSelectorModal.vue'
+import ShareForm from './ShareForm.vue'
+import SimpleModal from './SimpleModal.vue'
+import TagSelector from './TagSelector.vue'
+import ProjectSelector from './ProjectSelector.vue'
 
 export default {
   name: 'NoteCard',
   components: {
-    ShareNoteModal,
-    TagSelectorModal,
-    ProjectSelectorModal
+    ShareForm,
+    SimpleModal,
+    TagSelector,
+    ProjectSelector
   },
   props: {
     note: {
@@ -136,6 +157,16 @@ export default {
     handleProjectUpdate(projectId) {
       // Émettre un événement pour notifier le parent des changements de projet
       this.$emit('project-updated', this.note.id, projectId)
+    },
+
+    handleNoteShared() {
+      // La note a été partagée
+      this.showShareModal = false
+    },
+
+    handleShareRemoved() {
+      // Un partage a été révoqué
+      this.showShareModal = false
     }
   }
 }
