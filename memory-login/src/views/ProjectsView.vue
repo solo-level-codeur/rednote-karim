@@ -14,13 +14,13 @@
 </template>
 
 <script>
-import Sidebar from '@/components/Sidebar.vue'
+// Sidebar est maintenant un composant global (voir main.js)
 import ProjectManager from '@/components/ProjectManager.vue'
 
 export default {
   name: 'ProjectsView',
   components: {
-    Sidebar,
+    
     ProjectManager
   }
 }

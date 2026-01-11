@@ -49,7 +49,7 @@
 </template>
 
 <script>
-import Sidebar from '../components/Sidebar.vue'
+// Sidebar est maintenant un composant global (voir main.js)
 import NotesListSidebar from '../components/NotesListSidebar.vue'
 import NoteEditorPanel from '../components/NoteEditorPanel.vue'
 import { notesAPI, projectsAPI } from '../services/api'
@@ -58,7 +58,7 @@ import { authStore } from '../stores/auth'
 export default {
   name: 'DashboardView',
   components: {
-    Sidebar,
+    
     NotesListSidebar,
     NoteEditorPanel
   },

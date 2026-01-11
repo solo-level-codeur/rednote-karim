@@ -102,7 +102,7 @@
 </template>
 
 <script>
-import Sidebar from '../components/Sidebar.vue'
+// Sidebar est maintenant un composant global (voir main.js)
 import CommentsSection from '../components/CommentsSection.vue'
 import ShareNoteModal from '../components/ShareNoteModal.vue'
 import { notesAPI } from '../services/api'
@@ -114,7 +114,7 @@ import Placeholder from '@tiptap/extension-placeholder'
 export default {
   name: 'NoteDetailView',
   components: {
-    Sidebar,
+    
     CommentsSection,
     ShareNoteModal
   },

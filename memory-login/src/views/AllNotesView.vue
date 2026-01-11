@@ -36,7 +36,7 @@
 </template>
 
 <script>
-import Sidebar from '../components/Sidebar.vue'
+// Sidebar est maintenant un composant global (voir main.js)
 import NoteCreateForm from '../components/NoteCreateForm.vue'
 import SearchFilterBar from '../components/SearchFilterBar.vue'
 import NotesTable from '../components/NotesTable.vue'
@@ -46,7 +46,7 @@ import { authStore } from '../stores/auth'
 export default {
   name: 'AllNotesView',
   components: {
-    Sidebar,
+    
     NoteCreateForm,
     SearchFilterBar,
     NotesTable

@@ -167,13 +167,13 @@
 </template>
 
 <script>
-import Sidebar from '../components/Sidebar.vue'
+// Sidebar est maintenant un composant global (voir main.js)
 import { shareAPI } from '../services/api'
 
 export default {
   name: 'SharedNotesView',
   components: {
-    Sidebar
+    // Sidebar est maintenant global
   },
   data() {
     return {

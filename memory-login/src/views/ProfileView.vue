@@ -55,7 +55,7 @@
 </template>
 
 <script>
-import Sidebar from '../components/Sidebar.vue'
+// Sidebar est maintenant un composant global (voir main.js)
 import ProfileHeader from '../components/ProfileHeader.vue'
 import ProfileInfo from '../components/ProfileInfo.vue'
 import { authStore } from '../stores/auth'
@@ -65,7 +65,7 @@ import { profileAPI } from '../services/api'
 export default {
   name: 'ProfileView',
   components: {
-    Sidebar,
+    
     ProfileHeader,
     ProfileInfo
   },

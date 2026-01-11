@@ -37,13 +37,13 @@
 </template>
 
 <script>
-import Sidebar from '../components/Sidebar.vue'
+// Sidebar est maintenant un composant global (voir main.js)
 import TagManager from '../components/TagManager.vue'
 
 export default {
   name: 'TagsView',
   components: {
-    Sidebar,
+    
     TagManager
   }
 }

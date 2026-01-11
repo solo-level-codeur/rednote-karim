@@ -42,7 +42,7 @@
 </template>
 
 <script>
-import Sidebar from '../components/Sidebar.vue'
+// Sidebar est maintenant un composant global (voir main.js)
 import DashboardHeader from '../components/DashboardHeader.vue'
 import NotesList from '../components/NotesList.vue'
 import { projectsAPI } from '../services/api'
@@ -50,7 +50,7 @@ import { projectsAPI } from '../services/api'
 export default {
   name: 'NotesView',
   components: {
-    Sidebar,
+    
     DashboardHeader,
     NotesList
   },
