@@ -65,8 +65,61 @@
           <!-- Colonne principale : Contenu de la note -->
           <div :class="showComments ? 'col-lg-8' : 'col-12'">
             <div class="note-content-area p-4">
+              <!-- Métadonnées de la note (éditable si autorisé) -->
+              <div v-if="canEditNote" class="note-metadata-panel bg-light p-3 rounded mb-3">
+                <div class="row g-3">
+                  <!-- Titre -->
+                  <div class="col-md-8">
+                    <label class="form-label fw-semibold">
+                      <i class="fas fa-heading me-2"></i>Titre
+                    </label>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      v-model="editableTitle"
+                      @blur="updateNoteTitle"
+                      placeholder="Titre de la note..."
+                    >
+                  </div>
+                  
+                  <!-- Projet -->
+                  <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                      <i class="fas fa-folder me-2"></i>Projet
+                    </label>
+                    <select class="form-select" v-model="editableProjectId" @change="updateNoteProject">
+                      <option value="">Note personnelle</option>
+                      <option v-for="project in projects" :key="project.id" :value="project.id">
+                        {{ project.name }}
+                      </option>
+                    </select>
+                  </div>
+                  
+                  <!-- Tags -->
+                  <div class="col-12">
+                    <label class="form-label fw-semibold">
+                      <i class="fas fa-tags me-2"></i>Tags
+                    </label>
+                    <div class="tags-section">
+                      <TagSelector 
+                        v-if="note"
+                        :noteId="note.id"
+                        v-model="noteTags"
+                        @update:modelValue="handleTagsUpdate"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Zone d'édition TipTap -->
               <div class="tiptap-container">
+                <!-- Toolbar TipTap (seulement en mode édition) -->
+                <SimpleEditorToolbar 
+                  v-if="isEditing && editor"
+                  :editor="editor"
+                />
+                
                 <div 
                   ref="tiptapEditor" 
                   class="note-editor"
@@ -82,7 +135,7 @@
               <CommentsSection 
                 v-if="note"
                 :noteId="note.id" 
-                :currentUserId="currentUser?.id_users"
+                :currentUserId="currentUser?.id"
                 @comments-count="updateCommentsCount"
               />
             </div>
@@ -92,20 +145,31 @@
     </main>
 
     <!-- Modal de gestion des droits -->
-    <ShareNoteModal
+    <SimpleModal
       v-if="showShareModal && note"
-      :noteId="note.id"
-      :noteTitle="note.title"
+      :show="showShareModal"
+      :title="`Partager : ${note.title}`"
+      icon="fas fa-share-alt"
+      size="lg"
       @close="showShareModal = false"
-    />
+    >
+      <ShareForm
+        :noteId="note.id"
+        @shared="handleNoteShared"
+        @share-removed="handleShareRemoved"
+      />
+    </SimpleModal>
   </div>
 </template>
 
 <script>
 // Sidebar est maintenant un composant global (voir main.js)
 import CommentsSection from '../components/CommentsSection.vue'
-import ShareNoteModal from '../components/ShareNoteModal.vue'
-import { notesAPI } from '../services/api'
+import SimpleModal from '../components/SimpleModal.vue'
+import ShareForm from '../components/ShareForm.vue'
+import TagSelector from '../components/TagSelector.vue'
+import SimpleEditorToolbar from '../components/SimpleEditorToolbar.vue'
+import { notesAPI, projectsAPI } from '../services/api'
 import { authStore } from '../stores/auth'
 import { Editor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -114,9 +178,11 @@ import Placeholder from '@tiptap/extension-placeholder'
 export default {
   name: 'NoteDetailView',
   components: {
-    
     CommentsSection,
-    ShareNoteModal
+    SimpleModal,
+    ShareForm,
+    TagSelector,
+    SimpleEditorToolbar
   },
   data() {
     return {
@@ -128,7 +194,11 @@ export default {
       showShareModal: false,
       commentsCount: 0,
       editor: null,
-      originalContent: ''
+      originalContent: '',
+      editableTitle: '',
+      editableProjectId: '',
+      noteTags: [],
+      projects: []
     }
   },
   computed: {
@@ -145,19 +215,22 @@ export default {
     },
     canEditNote() {
       if (!this.note || !this.currentUser) return false
-      // Peut éditer si propriétaire ou permission write
-      return this.note.id_users === this.currentUser.id_users || 
-             this.note.permission === 'write' || 
-             this.note.permission === 'admin'
+      
+      const isOwner = this.note.id_users === this.currentUser.id
+      const hasWritePermission = this.note.permission === 'write'
+      const hasAdminPermission = this.note.permission === 'admin'
+      
+      return isOwner || hasWritePermission || hasAdminPermission
     },
     canManageNote() {
       if (!this.note || !this.currentUser) return false
       // Peut gérer les droits si propriétaire
-      return this.note.id_users === this.currentUser.id_users
+      return this.note.id_users === this.currentUser.id
     }
   },
   async mounted() {
     await this.loadNote()
+    await this.loadProjects()
     this.initializeTipTap()
   },
   beforeUnmount() {
@@ -175,7 +248,17 @@ export default {
         const response = await notesAPI.getNoteById(noteId)
         this.note = response.data
         this.originalContent = this.note.content || ''
+        
+        // Initialiser les valeurs éditables
+        this.editableTitle = this.note.title || ''
+        this.editableProjectId = this.note.id_projects || ''
+        
         console.log('✅ Note chargée:', this.note)
+        
+        // Réinitialiser TipTap avec le contenu de la note
+        if (this.editor) {
+          this.editor.commands.setContent(this.note.content || '')
+        }
       } catch (error) {
         console.error('❌ Erreur lors du chargement de la note:', error)
         this.error = 'Note introuvable ou accès refusé'
@@ -185,29 +268,43 @@ export default {
     },
 
     initializeTipTap() {
-      if (this.editor) {
-        this.editor.destroy()
-      }
-
-      this.editor = new Editor({
-        element: this.$refs.tiptapEditor,
-        extensions: [
-          StarterKit,
-          Placeholder.configure({
-            placeholder: 'Commencez à écrire...'
-          })
-        ],
-        content: this.note?.content || '',
-        editable: false, // Commencer en mode lecture
-        editorProps: {
-          attributes: {
-            class: 'prose prose-lg max-w-none focus:outline-none p-4'
-          }
+      this.$nextTick(() => {
+        if (this.editor) {
+          this.editor.destroy()
         }
+
+        if (!this.$refs.tiptapEditor) {
+          console.error('❌ Ref tiptapEditor introuvable')
+          return
+        }
+
+        this.editor = new Editor({
+          element: this.$refs.tiptapEditor,
+          extensions: [
+            StarterKit,
+            Placeholder.configure({
+              placeholder: 'Commencez à écrire...'
+            })
+          ],
+          content: this.note?.content || '',
+          editable: false, // Commencer en mode lecture
+          editorProps: {
+            attributes: {
+              class: 'prose prose-lg max-w-none focus:outline-none p-4'
+            }
+          }
+        })
+        
+        console.log('✅ TipTap initialisé', { editor: !!this.editor })
       })
     },
 
     toggleEditMode() {
+      if (!this.editor) {
+        console.error('❌ Éditeur TipTap non initialisé')
+        return
+      }
+      
       if (this.isEditing) {
         // Sauvegarder
         this.saveNote()
@@ -216,6 +313,7 @@ export default {
         this.isEditing = true
         this.editor.setEditable(true)
         this.editor.commands.focus()
+        console.log('📝 Mode édition activé')
       }
     },
 
@@ -265,6 +363,65 @@ export default {
         hour: '2-digit',
         minute: '2-digit'
       })
+    },
+
+    handleNoteShared() {
+      this.showShareModal = false
+    },
+
+    handleShareRemoved() {
+      this.showShareModal = false
+    },
+
+    async loadProjects() {
+      try {
+        const response = await projectsAPI.getAllProjects()
+        this.projects = response.data
+      } catch (error) {
+        console.error('Erreur lors du chargement des projets:', error)
+      }
+    },
+
+    async updateNoteTitle() {
+      if (!this.note || this.editableTitle === this.note.title) return
+      
+      try {
+        await notesAPI.updateNote(this.note.id, {
+          title: this.editableTitle,
+          content: this.note.content
+        })
+        
+        this.note.title = this.editableTitle
+        this.$toast?.success('Titre mis à jour')
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du titre:', error)
+        this.$toast?.error('Erreur lors de la mise à jour du titre')
+        this.editableTitle = this.note.title // Restaurer
+      }
+    },
+
+    async updateNoteProject() {
+      if (!this.note) return
+      
+      try {
+        await notesAPI.updateNote(this.note.id, {
+          title: this.note.title,
+          content: this.note.content,
+          id_projects: this.editableProjectId || null
+        })
+        
+        this.note.id_projects = this.editableProjectId
+        this.note.project_name = this.projects.find(p => p.id == this.editableProjectId)?.name || null
+        this.$toast?.success('Projet mis à jour')
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du projet:', error)
+        this.$toast?.error('Erreur lors de la mise à jour du projet')
+        this.editableProjectId = this.note.id_projects || '' // Restaurer
+      }
+    },
+
+    handleTagsUpdate(updatedTags) {
+      this.noteTags = updatedTags
     }
   }
 }
@@ -305,23 +462,28 @@ export default {
 
 .tiptap-container {
   min-height: 500px;
-}
-
-.note-editor {
-  min-height: 500px;
   border: 2px solid transparent;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
-.note-editor.editing {
+.tiptap-container:has(.note-editor.editing) {
   border-color: #007bff;
-  background-color: #fff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.note-editor {
+  min-height: 500px;
+  transition: all 0.2s ease;
+}
+
+.note-editor.editing {
+  background-color: #fff;
 }
 
 .note-editor.readonly {
   background-color: #f8f9fa;
+  border-radius: 8px;
 }
 
 /* Styles TipTap */

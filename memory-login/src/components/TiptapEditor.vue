@@ -23,7 +23,7 @@ import YouTube from '@tiptap/extension-youtube'
 import SimpleEditorToolbar from './SimpleEditorToolbar.vue'
 
 export default {
-  name: 'CompleteEditor',
+  name: 'TiptapEditor',
   
   components: {
     EditorContent,
@@ -57,7 +57,10 @@ export default {
     this.editor = new Editor({
       content: this.modelValue,
       extensions: [
-        StarterKit,
+        StarterKit.configure({
+          // StarterKit inclut déjà Link et autres, on les désactive pour éviter les doublons
+          link: false,
+        }),
         Underline,
         TextStyle,
         Color,

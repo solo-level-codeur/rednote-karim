@@ -1,7 +1,7 @@
 <template>
-  <div class="notes-sidebar">
+  <div class="notes-sidebar bg-light border-end d-flex flex-column">
     <!-- Barre de recherche et filtre -->
-    <div class="search-section">
+    <div class="p-3 border-bottom">
       <!-- Filtre par projet -->
       <div class="mb-3">
         <select class="form-select form-select-sm" v-model="selectedProjectId" @change="onProjectChange">
@@ -28,11 +28,11 @@
     </div>
 
     <!-- Bouton nouvelle note et infos projet -->
-    <div class="new-note-section">
-      <div v-if="selectedProjectId" class="project-info mb-2">
+    <div class="p-3 border-bottom">
+      <div v-if="selectedProjectId" class="bg-light p-2 rounded text-center mb-2">
         <small class="text-muted">
           <i class="fas fa-folder"></i> 
-          {{ getCurrentProjectName() }}
+          {{ currentProjectName }}
         </small>
       </div>
       
@@ -47,7 +47,7 @@
     </div>
 
     <!-- Liste des notes -->
-    <div class="notes-list-container">
+    <div class="flex-grow-1" style="overflow-y: auto;">
       <div v-if="loading" class="text-center p-3">
         <div class="spinner-border spinner-border-sm" role="status">
           <span class="visually-hidden">Chargement...</span>
@@ -62,7 +62,7 @@
         </small>
       </div>
 
-      <div v-else class="notes-list">
+      <div v-else class="py-2">
         <div 
           v-for="note in filteredNotes" 
           :key="note.id"
@@ -144,18 +144,29 @@ export default {
       }
       
       const query = this.searchQuery.toLowerCase()
-      return this.notes.filter(note => 
-        note.title.toLowerCase().includes(query) ||
-        (note.content && this.getTextPreview(note.content).toLowerCase().includes(query))
-      )
+      return this.notes.filter(note => {
+        // Recherche d'abord dans le titre (plus rapide)
+        if (note.title && note.title.toLowerCase().includes(query)) {
+          return true
+        }
+        // Puis dans le contenu si nécessaire
+        if (note.content) {
+          const textContent = this.getTextPreview(note.content).toLowerCase()
+          return textContent.includes(query)
+        }
+        return false
+      })
     },
     currentProject() {
       return this.projects.find(p => p.id == this.selectedProjectId)
+    },
+    currentProjectName() {
+      return this.currentProject?.name || 'Projet inconnu'
     }
   },
   methods: {
     selectNote(note) {
-      this.$emit('note-selected', note)
+      this.$router.push(`/notes/${note.id}`)
     },
 
     createNewNote() {
@@ -177,11 +188,6 @@ export default {
       this.$emit('project-filter-changed', this.selectedProjectId)
     },
 
-    getCurrentProjectName() {
-      if (!this.selectedProjectId) return ''
-      const project = this.projects.find(p => p.id == this.selectedProjectId)
-      return project ? project.name : 'Projet inconnu'
-    },
 
     formatDate(dateString) {
       const date = new Date(dateString)
@@ -207,10 +213,8 @@ export default {
     getTextPreview(htmlContent) {
       if (!htmlContent) return ''
       
-      // Retirer les balises HTML et garder seulement le texte
-      const div = document.createElement('div')
-      div.innerHTML = htmlContent
-      const text = div.textContent || div.innerText || ''
+      // Retirer les balises HTML avec regex (plus performant)
+      const text = htmlContent.replace(/<[^>]*>/g, '').trim()
       
       // Limiter à 100 caractères
       return text.length > 100 ? text.substring(0, 100) + '...' : text
@@ -222,37 +226,12 @@ export default {
 <style scoped>
 .notes-sidebar {
   height: 100vh;
-  background: #f8f9fa;
-  border-right: 1px solid #dee2e6;
-  display: flex;
-  flex-direction: column;
 }
 
-.search-section {
-  padding: 1rem;
-  border-bottom: 1px solid #dee2e6;
-}
 
-.new-note-section {
-  padding: 1rem;
-  border-bottom: 1px solid #dee2e6;
-}
 
-.project-info {
-  background-color: #f8f9fa;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  text-align: center;
-}
 
-.notes-list-container {
-  flex: 1;
-  overflow-y: auto;
-}
 
-.notes-list {
-  padding: 0.5rem 0;
-}
 
 .note-item {
   padding: 1rem;

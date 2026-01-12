@@ -4,15 +4,16 @@
     <!-- Formatage de base -->
     <div class="toolbar-section">
       <button 
-        @click="editor.chain().focus().toggleBold().run()"
+        @click="editor && editor.chain().focus().toggleBold().run()"
         :class="{ active: editor?.isActive('bold') }"
+        :disabled="!editor"
         title="Gras (Ctrl+B)"
       >
         <strong>B</strong>
       </button>
       
       <button 
-        @click="editor.chain().focus().toggleItalic().run()"
+        @click="editor && editor.chain().focus().toggleItalic().run()"
         :class="{ active: editor?.isActive('italic') }"
         title="Italique (Ctrl+I)"
       >
@@ -20,7 +21,7 @@
       </button>
       
       <button 
-        @click="editor.chain().focus().toggleUnderline().run()"
+        @click="editor && editor.chain().focus().toggleUnderline().run()"
         :class="{ active: editor?.isActive('underline') }"
         title="Souligné (Ctrl+U)"
       >
@@ -28,7 +29,7 @@
       </button>
       
       <button 
-        @click="editor.chain().focus().toggleStrike().run()"
+        @click="editor && editor.chain().focus().toggleStrike().run()"
         :class="{ active: editor?.isActive('strike') }"
         title="Barré"
       >
@@ -55,7 +56,7 @@
     <!-- Listes -->
     <div class="toolbar-section">
       <button 
-        @click="editor.chain().focus().toggleBulletList().run()"
+        @click="editor && editor.chain().focus().toggleBulletList().run()"
         :class="{ active: editor?.isActive('bulletList') }"
         title="Liste à puces"
       >
@@ -63,7 +64,7 @@
       </button>
       
       <button 
-        @click="editor.chain().focus().toggleOrderedList().run()"
+        @click="editor && editor.chain().focus().toggleOrderedList().run()"
         :class="{ active: editor?.isActive('orderedList') }"
         title="Liste numérotée"
       >
@@ -77,7 +78,7 @@
     <!-- Alignement -->
     <div class="toolbar-section">
       <button 
-        @click="editor.chain().focus().setTextAlign('left').run()"
+        @click="editor && editor.chain().focus().setTextAlign('left').run()"
         :class="{ active: editor?.isActive({ textAlign: 'left' }) }"
         title="Aligner à gauche"
       >
@@ -85,7 +86,7 @@
       </button>
       
       <button 
-        @click="editor.chain().focus().setTextAlign('center').run()"
+        @click="editor && editor.chain().focus().setTextAlign('center').run()"
         :class="{ active: editor?.isActive({ textAlign: 'center' }) }"
         title="Centrer"
       >
@@ -93,7 +94,7 @@
       </button>
       
       <button 
-        @click="editor.chain().focus().setTextAlign('right').run()"
+        @click="editor && editor.chain().focus().setTextAlign('right').run()"
         :class="{ active: editor?.isActive({ textAlign: 'right' }) }"
         title="Aligner à droite"
       >
@@ -133,7 +134,7 @@
     <!-- Actions rapides -->
     <div class="toolbar-section">
       <button 
-        @click="editor.chain().focus().toggleBlockquote().run()"
+        @click="editor && editor.chain().focus().toggleBlockquote().run()"
         :class="{ active: editor?.isActive('blockquote') }"
         title="Citation"
       >
@@ -141,7 +142,7 @@
       </button>
       
       <button 
-        @click="editor.chain().focus().toggleCode().run()"
+        @click="editor && editor.chain().focus().toggleCode().run()"
         :class="{ active: editor?.isActive('code') }"
         title="Code en ligne"
       >
@@ -158,11 +159,12 @@ export default {
   props: {
     editor: {
       type: Object,
-      required: true
+      default: null
     }
   },
   methods: {
     setHeading(event) {
+      if (!this.editor) return
       const level = parseInt(event.target.value)
       if (level) {
         this.editor.chain().focus().toggleHeading({ level }).run()
@@ -174,10 +176,12 @@ export default {
     },
     
     setTextColor(event) {
+      if (!this.editor) return
       this.editor.chain().focus().setColor(event.target.value).run()
     },
     
     setHighlight(event) {
+      if (!this.editor) return
       this.editor.chain().focus().toggleHighlight({ color: event.target.value }).run()
     }
   }

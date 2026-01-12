@@ -22,26 +22,20 @@
           <NotesListSidebar 
             :notes="notes"
             :loading="loading"
-            :selectedNote="selectedNote"
             :projects="projects"
             @note-selected="selectNote"
-            @create-note="createNewNote"
             @delete-note="deleteNote"
             @project-filter-changed="handleProjectFilterChange"
           />
         </div>
         
-        <!-- Panneau droit : Éditeur -->
-        <div class="notes-editor-container">
-          <NoteEditorPanel 
-            :note="selectedNote"
-            :projects="projects"
-            :isCreating="isCreating"
-            :defaultProjectId="selectedProjectId"
-            @note-saved="handleNoteSaved"
-            @note-created="handleNoteCreated"
-            @cancel-create="cancelCreate"
-          />
+        <!-- Message d'accueil -->
+        <div class="welcome-panel grow d-flex align-items-center justify-content-center">
+          <div class="text-center text-muted">
+            <i class="fas fa-sticky-note fa-4x mb-3"></i>
+            <h4>Bienvenue sur votre tableau de bord</h4>
+            <p>Sélectionnez une note dans la liste pour la modifier ou créez-en une nouvelle</p>
+          </div>
         </div>
       </div>
     </main>
@@ -51,7 +45,6 @@
 <script>
 // Sidebar est maintenant un composant global (voir main.js)
 import NotesListSidebar from '../components/NotesListSidebar.vue'
-import NoteEditorPanel from '../components/NoteEditorPanel.vue'
 import { notesAPI, projectsAPI } from '../services/api'
 import { authStore } from '../stores/auth'
 
@@ -59,17 +52,14 @@ export default {
   name: 'DashboardView',
   components: {
     
-    NotesListSidebar,
-    NoteEditorPanel
+    NotesListSidebar
   },
   data() {
     return {
       notes: [],
       projects: [],
-      selectedNote: null,
       selectedProjectId: null,
       loading: false,
-      isCreating: false,
       error: null
     }
   },
@@ -170,8 +160,7 @@ export default {
     },
 
     selectNote(note) {
-      this.selectedNote = note
-      this.isCreating = false
+      this.$router.push(`/notes/${note.id}`)
     },
 
     createNewNote() {

@@ -207,8 +207,8 @@ export default {
     
     editNote(note) {
       this.selectedNote = null
-      // Rediriger vers l'éditeur de notes avec cette note
-      this.$router.push(`/notes?noteId=${note.id}`)
+      // Rediriger vers la page dédiée de la note
+      this.$router.push(`/notes/${note.id}`)
     },
     
     getPermissionLabel(permission) {

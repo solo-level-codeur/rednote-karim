@@ -38,7 +38,7 @@
         class="col-12 col-md-6 col-xl-4">
         <NoteCard 
           :note="note"
-          @edit="$emit('edit-note', $event)"
+          @edit="openNoteDetail($event)"
           @delete="$emit('delete-note', $event)"
           @tags-updated="$emit('tags-updated', $event)"
           @project-updated="$emit('project-updated', $event)" />
@@ -65,7 +65,12 @@ export default {
       default: false
     }
   },
-  emits: ['edit-note', 'delete-note', 'tags-updated', 'project-updated']
+  emits: ['delete-note', 'tags-updated', 'project-updated'],
+  methods: {
+    openNoteDetail(note) {
+      this.$router.push(`/notes/${note.id}`)
+    }
+  }
 }
 </script>
 

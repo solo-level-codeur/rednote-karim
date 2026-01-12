@@ -34,26 +34,18 @@
     <!-- SECTION 3: GESTION D'ÉTAT - Reste dans NotesList.vue -->
     <!-- Responsabilité: Messages d'erreur, loading -->
     <!-- ============================================ -->
-    <div v-if="error" class="notification is-danger">
+    <div v-if="error" class="alert alert-danger d-flex align-items-center">
+      <i class="fas fa-exclamation-triangle me-2"></i>
       {{ error }}
     </div>
 
     <NotesGrid 
       :notes="notes"
       :loading="loading"
-      @edit-note="editNote"
       @delete-note="deleteNoteConfirm"
       @tags-updated="handleTagsUpdated"
       @project-updated="handleProjectUpdated" />
 
-    <!-- Note Editor Modal -->
-    <NoteEditorModal 
-      v-if="showNoteEditor"
-      :note="editingNote"
-      :projects="projects"
-      @save="handleNoteSave"
-      @cancel="handleNoteCancel"
-    />
 
     <!-- Search Modal -->
     <SimpleModal
@@ -76,7 +68,6 @@ import { notesAPI, projectsAPI, tagsAPI, shareAPI } from '../services/api'
 import NotesHeader from './NotesHeader.vue'
 import NoteCreateForm from './NoteCreateForm.vue'
 import NotesGrid from './NotesGrid.vue'
-import NoteEditorModal from './NoteEditorModal.vue'
 import SimpleModal from './SimpleModal.vue'
 import SearchForm from './SearchForm.vue'
 
@@ -86,7 +77,6 @@ export default {
     NotesHeader,
     NoteCreateForm,
     NotesGrid,
-    NoteEditorModal,
     SimpleModal,
     SearchForm
   },
@@ -102,9 +92,7 @@ export default {
       loading: false,
       error: null,
       showCreateForm: false,
-      showNoteEditor: false,
       showSearchModal: false,
-      editingNote: null,
       projects: [],
       newNote: {
         title: '',
@@ -218,10 +206,6 @@ export default {
       this.newNote = { title: '', content: '' }
     },
 
-    editNote(note) {
-      this.editingNote = note
-      this.showNoteEditor = true
-    },
 
     async deleteNoteConfirm(note) {
       if (confirm(`Êtes-vous sûr de vouloir supprimer la note "${note.title}" ?`)) {
@@ -265,21 +249,10 @@ export default {
       }
     },
 
-    handleNoteSave(savedNote) {
-      // Rafraîchir la liste des notes
-      this.fetchNotes()
-      this.showNoteEditor = false
-      this.editingNote = null
-    },
-
-    handleNoteCancel() {
-      this.showNoteEditor = false
-      this.editingNote = null
-    },
 
     handleNoteSelected(note) {
       this.showSearchModal = false
-      this.editNote(note)
+      this.$router.push(`/notes/${note.id}`)
     }
   }
 }

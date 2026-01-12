@@ -9,6 +9,7 @@ import AdminUsersView from '../views/AdminUsersView.vue'
 import SharedNotesView from '../views/SharedNotesView.vue'
 import TagsView from '../views/TagsView.vue'
 import AllNotesView from '../views/AllNotesView.vue'
+import NoteDetailView from '../views/NoteDetailView.vue'
 import { authStore } from '../stores/auth'
 
 const routes = [
@@ -88,6 +89,15 @@ const routes = [
     name: 'all-notes',
     component: AllNotesView,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/notes/:id',
+    name: 'note-detail',
+    component: NoteDetailView,
+    meta: { requiresAuth: true },
+    props: route => ({
+      id: route.params.id
+    })
   },
 ]
 
