@@ -24,8 +24,7 @@
       <!-- User Info Display -->
       <div class="text-center">
         <h5 class="mb-1">{{ fullName || 'Utilisateur' }}</h5>
-        <p class="text-muted mb-2">{{ user.job_title || 'Poste non défini' }}</p>
-        <p class="text-muted small">{{ user.department || 'Département non défini' }}</p>
+        <p class="text-muted mb-2">{{ user.description || 'Description non définie' }}</p>
         
         <hr class="my-3">
         
@@ -67,11 +66,11 @@
           </div>
           <div class="col-12 mb-2">
             <strong>Rôle:</strong>
-            <div class="text-muted">{{ user.role || 'Non défini' }}</div>
+            <div class="text-muted">{{ getRoleName(user.role_id) }}</div>
           </div>
-          <div class="col-12 mb-2" v-if="user.phone">
+          <div class="col-12 mb-2" v-if="user.telephone">
             <strong>Téléphone:</strong>
-            <div class="text-muted">{{ user.phone }}</div>
+            <div class="text-muted">{{ user.telephone }}</div>
           </div>
           <div class="col-12" v-if="user.created_at">
             <strong>Membre depuis:</strong>
@@ -117,6 +116,16 @@ export default {
         month: 'long',
         day: 'numeric'
       })
+    },
+    
+    getRoleName(roleId) {
+      const roles = {
+        1: 'Admin',
+        2: 'Manager', 
+        3: 'Developer',
+        4: 'Viewer'
+      }
+      return roles[roleId] || 'Non défini'
     }
   }
 }

@@ -12,16 +12,16 @@
 
     <!-- Liste des projets -->
     <div class="row">
-      <div class="col-md-6 col-lg-4 mb-3" v-for="project in projects" :key="project.id">
+      <div class="col-md-6 col-lg-4 mb-3" v-for="project in projects" :key="project.project_id">
         <div class="card project-card">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
               <h5 class="card-title">
                 <router-link 
-                  :to="`/projects/${project.id}/notes`" 
+                  :to="`/projects/${project.project_id}/notes`" 
                   class="text-decoration-none"
                 >
-                  {{ project.name }}
+                  {{ project.project_name }}
                 </router-link>
               </h5>
               <div class="btn-group-vertical btn-group-sm">
@@ -46,7 +46,7 @@
                 <button 
                   type="button"
                   class="btn btn-sm btn-outline-danger"
-                  @click="deleteProject(project.id)"
+                  @click="deleteProject(project.project_id)"
                   title="Supprimer"
                 >
                   <i class="fas fa-trash"></i>
@@ -59,7 +59,7 @@
             <div class="project-meta">
               <small class="text-muted">
                 <i class="fas fa-calendar"></i> 
-                Créé le {{ formatDate(project.creation_date) }}
+                Créé le {{ formatDate(project.created_at) }}
               </small>
               <br>
               <span class="badge" :class="getStatusBadgeClass(project.status)">
@@ -148,7 +148,7 @@ export default {
       if (confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
         try {
           await projectsAPI.deleteProject(projectId)
-          this.projects = this.projects.filter(p => p.id !== projectId)
+          this.projects = this.projects.filter(p => p.project_id !== projectId)
           this.$toast.success('Projet supprimé avec succès')
         } catch (error) {
           console.error('Erreur lors de la suppression:', error)
@@ -161,8 +161,8 @@ export default {
       try {
         if (this.editingProject) {
           // Modification
-          const response = await projectsAPI.updateProject(this.editingProject.id, projectData)
-          const index = this.projects.findIndex(p => p.id === this.editingProject.id)
+          const response = await projectsAPI.updateProject(this.editingProject.project_id, projectData)
+          const index = this.projects.findIndex(p => p.project_id === this.editingProject.project_id)
           if (index !== -1) {
             this.projects[index] = { ...this.projects[index], ...projectData }
           }
@@ -176,8 +176,8 @@ export default {
           
           const newProject = {
             ...projectData,
-            id: response.data.id,
-            creation_date: new Date().toISOString(),
+            project_id: response.data.project_id,
+            created_at: new Date().toISOString(),
             status: 'New'
           }
           
@@ -189,7 +189,7 @@ export default {
             
             for (const member of projectData.members) {
               try {
-                await projectsAPI.addProjectMember(newProject.id, {
+                await projectsAPI.addProjectMember(newProject.project_id, {
                   userId: member.userId,
                   role: member.role
                 })
@@ -216,7 +216,7 @@ export default {
     },
 
     manageMembers(project) {
-      console.log('🚀 Ouverture modal membres pour projet:', project?.name)
+      console.log('🚀 Ouverture modal membres pour projet:', project?.project_name)
       this.managingMembersProject = project
       // Le modal s'ouvrira automatiquement grâce aux attributs data-bs-*
     },

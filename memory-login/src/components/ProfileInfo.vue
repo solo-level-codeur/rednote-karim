@@ -64,7 +64,7 @@
             <div class="mb-3">
               <label class="form-label">Téléphone</label>
               <input
-                v-model="localUser.phone"
+                v-model="localUser.telephone"
                 type="tel"
                 class="form-control"
                 placeholder="+33 1 23 45 67 89"
@@ -72,75 +72,19 @@
             </div>
           </div>
           
-          <!-- Informations professionnelles -->
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label class="form-label">Poste</label>
-              <input
-                v-model="localUser.job_title"
-                type="text"
-                class="form-control"
-                placeholder="Votre titre de poste"
-              >
-            </div>
-          </div>
-          
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label class="form-label">Département</label>
-              <input
-                v-model="localUser.department"
-                type="text"
-                class="form-control"
-                placeholder="Votre département"
-              >
-            </div>
-          </div>
-          
-          <!-- Liens sociaux -->
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label class="form-label">
-                <i class="fab fa-linkedin me-1"></i>
-                LinkedIn
-              </label>
-              <input
-                v-model="localUser.linkedin_url"
-                type="url"
-                class="form-control"
-                placeholder="https://linkedin.com/in/votre-profil"
-              >
-            </div>
-          </div>
-          
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label class="form-label">
-                <i class="fab fa-github me-1"></i>
-                GitHub
-              </label>
-              <input
-                v-model="localUser.github_url"
-                type="url"
-                class="form-control"
-                placeholder="https://github.com/votre-username"
-              >
-            </div>
-          </div>
-          
-          <!-- Bio Section -->
+          <!-- Description Section -->
           <div class="col-12">
             <div class="mb-3">
               <label class="form-label">Description personnelle</label>
               <textarea
-                v-model="localUser.bio"
+                v-model="localUser.description"
                 class="form-control"
                 rows="4"
                 placeholder="Parlez-nous de vous, votre expérience, vos intérêts..."
                 maxlength="500"
               ></textarea>
               <div class="form-text text-end">
-                {{ bioLength }}/500 caractères
+                {{ descriptionLength }}/500 caractères
               </div>
             </div>
           </div>
@@ -213,8 +157,8 @@ export default {
     }
   },
   computed: {
-    bioLength() {
-      return this.localUser.bio?.length || 0
+    descriptionLength() {
+      return this.localUser.description?.length || 0
     },
     
     hasChanged() {
@@ -232,7 +176,7 @@ export default {
   },
   methods: {
     async saveProfile() {
-      if (this.bioLength > 500) {
+      if (this.descriptionLength > 500) {
         this.showError = true
         this.errorMessage = 'La description ne peut pas dépasser 500 caractères'
         return
@@ -243,6 +187,18 @@ export default {
       this.showSuccess = false
       
       try {
+        // Import API
+        const { authAPI } = await import('@/services/api')
+        
+        // Call API to update profile
+        await authAPI.updateProfile({
+          firstname: this.localUser.firstname,
+          lastname: this.localUser.lastname,
+          email: this.localUser.email,
+          telephone: this.localUser.telephone,
+          description: this.localUser.description
+        })
+        
         // Emit update to parent
         this.$emit('user-updated', this.localUser)
         

@@ -13,10 +13,10 @@
       <option value="">Sélectionner un projet...</option>
       <option 
         v-for="project in projects" 
-        :key="project.id" 
-        :value="project.id"
+        :key="project.project_id" 
+        :value="project.project_id"
       >
-        {{ project.name }}
+        {{ project.project_name }}
       </option>
     </select>
     <small v-if="!canSelectProject" class="text-muted">

@@ -54,19 +54,19 @@
             </tr>
           </thead>
           <tbody>
-            <template v-for="project in projects" :key="project.id">
+            <template v-for="project in projects" :key="project.project_id">
               <tr class="project-row">
                 <td class="border-0">
                   <div>
-                    <h6 class="mb-1 fw-semibold text-dark">{{ project.name }}</h6>
+                    <h6 class="mb-1 fw-semibold text-dark">{{ project.project_name }}</h6>
                     <button 
                       v-if="project.description"
-                      @click="toggleDescription(project.id)"
+                      @click="toggleDescription(project.project_id)"
                       class="btn btn-link btn-sm p-0 text-decoration-none"
                     >
-                      <i :class="expandedProject === project.id ? 'fas fa-chevron-down' : 'fas fa-chevron-right'" 
+                      <i :class="expandedProject === project.project_id ? 'fas fa-chevron-down' : 'fas fa-chevron-right'" 
                          class="me-1 small"></i>
-                      {{ expandedProject === project.id ? 'Masquer' : 'Voir' }} description
+                      {{ expandedProject === project.project_id ? 'Masquer' : 'Voir' }} description
                     </button>
                   </div>
                 </td>
@@ -124,7 +124,7 @@
                 </td>
               </tr>
               
-              <tr v-if="expandedProject === project.id" class="project-description">
+              <tr v-if="expandedProject === project.project_id" class="project-description">
                 <td colspan="6" class="border-0 bg-light">
                   <div class="p-3 rounded">
                     <h6 class="text-primary mb-2">

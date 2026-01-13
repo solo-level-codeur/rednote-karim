@@ -74,7 +74,7 @@
       @close="showShareModal = false"
     >
       <ShareForm 
-        :noteId="note.id"
+        :noteId="note.note_id"
         @shared="handleNoteShared"
         @share-removed="handleShareRemoved"
       />
@@ -89,7 +89,7 @@
       @close="showTagModal = false"
     >
       <TagSelector 
-        :noteId="note.id"
+        :noteId="note.note_id"
         @update:modelValue="handleTagsUpdate"
       />
     </SimpleModal>
@@ -102,7 +102,7 @@
       @close="showProjectModal = false"
     >
       <ProjectSelector 
-        :noteId="note.id"
+        :noteId="note.note_id"
         :currentProjectId="note.project_id"
         @update:modelValue="handleProjectUpdate"
       />
@@ -151,12 +151,12 @@ export default {
 
     handleTagsUpdate(tags) {
       // Émettre un événement pour notifier le parent des changements de tags
-      this.$emit('tags-updated', this.note.id, tags)
+      this.$emit('tags-updated', this.note.note_id, tags)
     },
 
     handleProjectUpdate(projectId) {
       // Émettre un événement pour notifier le parent des changements de projet
-      this.$emit('project-updated', this.note.id, projectId)
+      this.$emit('project-updated', this.note.note_id, projectId)
     },
 
     handleNoteShared() {

@@ -5,7 +5,7 @@
         <div class="modal-header">
           <h5 class="modal-title" id="projectMembersModalLabel">
             <i class="fas fa-users me-2"></i>
-            Gestion des membres - {{ project?.name }}
+            Gestion des membres - {{ project?.project_name }}
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
         </div>
@@ -18,13 +18,25 @@
             </h6>
             <div class="row">
               <div class="col-md-4">
-                <label class="form-label">ID Utilisateur</label>
-                <input 
-                  type="number" 
-                  class="form-control" 
+                <label class="form-label">Utilisateur</label>
+                <select 
+                  class="form-select" 
                   v-model="newMember.userId"
-                  placeholder="Ex: 2"
+                  :disabled="loadingUsers"
                 >
+                  <option value="">Sélectionner un utilisateur</option>
+                  <option 
+                    v-for="user in availableUsers" 
+                    :key="user.user_id" 
+                    :value="user.user_id"
+                  >
+                    {{ user.firstname }} {{ user.lastname }} ({{ user.email }})
+                  </option>
+                </select>
+                <div v-if="loadingUsers" class="form-text">
+                  <i class="spinner-border spinner-border-sm me-1"></i>
+                  Chargement des utilisateurs...
+                </div>
               </div>
               <div class="col-md-4">
                 <label class="form-label">Rôle</label>
@@ -107,7 +119,7 @@
                       </span>
                     </td>
                     <td>
-                      <small>{{ formatDate(member.joined_date) }}</small>
+                      <small>{{ formatDate(member.joined_at) }}</small>
                     </td>
                     <td v-if="isProjectOwner && member.user_type !== 'owner'">
                       <div class="btn-group btn-group-sm">
@@ -186,7 +198,7 @@
 </template>
 
 <script>
-import { projectsAPI } from '../services/api'
+import { projectsAPI, authAPI } from '../services/api'
 import { authStore } from '../stores/auth'
 
 export default {
@@ -202,6 +214,8 @@ export default {
     return {
       members: [],
       loading: false,
+      loadingUsers: false,
+      allUsers: [],
       newMember: {
         userId: '',
         role: 'Member'
@@ -215,7 +229,12 @@ export default {
       return authStore.state.user?.id
     },
     isProjectOwner() {
-      return this.project && this.currentUserId && this.project.id_owner === this.currentUserId
+      return this.project && this.currentUserId && this.project.user_id === this.currentUserId
+    },
+    availableUsers() {
+      // Filtrer les utilisateurs qui ne sont pas déjà membres
+      const memberIds = this.members.map(m => m.id)
+      return this.allUsers.filter(user => !memberIds.includes(user.user_id))
     }
   },
   watch: {
@@ -223,6 +242,7 @@ export default {
       handler(newProject) {
         if (newProject) {
           this.loadMembers()
+          this.loadUsers()
         }
       },
       immediate: true
@@ -234,7 +254,7 @@ export default {
 
       this.loading = true
       try {
-        const response = await projectsAPI.getProjectMembers(this.project.id)
+        const response = await projectsAPI.getProjectMembers(this.project.project_id)
         this.members = response.data.members || []
         console.log('Membres chargés:', this.members)
       } catch (error) {
@@ -245,12 +265,26 @@ export default {
       }
     },
 
+    async loadUsers() {
+      this.loadingUsers = true
+      try {
+        const response = await authAPI.getAllUsers()
+        this.allUsers = response.data.users || []
+        console.log('Utilisateurs chargés:', this.allUsers)
+      } catch (error) {
+        console.error('Erreur lors du chargement des utilisateurs:', error)
+        this.$emit('show-error', 'Erreur lors du chargement des utilisateurs')
+      } finally {
+        this.loadingUsers = false
+      }
+    },
+
     async addMember() {
       if (!this.newMember.userId || !this.project) return
 
       this.loading = true
       try {
-        await projectsAPI.addProjectMember(this.project.id, {
+        await projectsAPI.addProjectMember(this.project.project_id, {
           userId: parseInt(this.newMember.userId),
           role: this.newMember.role
         })
@@ -286,7 +320,7 @@ export default {
 
       this.loading = true
       try {
-        await projectsAPI.updateMemberRole(this.project.id, this.editingMember.id, {
+        await projectsAPI.updateMemberRole(this.project.project_id, this.editingMember.id, {
           role: this.editingRole
         })
 
@@ -318,7 +352,7 @@ export default {
 
       this.loading = true
       try {
-        await projectsAPI.removeProjectMember(this.project.id, member.id)
+        await projectsAPI.removeProjectMember(this.project.project_id, member.id)
 
         // Recharger la liste
         await this.loadMembers()

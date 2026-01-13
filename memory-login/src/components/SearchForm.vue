@@ -22,8 +22,8 @@
           <div class="col-md-6">
             <select class="form-select" v-model="filters.project" @change="performSearch">
               <option value="">Tous les projets</option>
-              <option v-for="project in projects" :key="project.id" :value="project.id">
-                {{ project.name }}
+              <option v-for="project in projects" :key="project.project_id" :value="project.project_id">
+                {{ project.project_name }}
               </option>
             </select>
           </div>
@@ -57,7 +57,7 @@
         <div class="list-group">
           <button 
             v-for="note in results" 
-            :key="note.id"
+            :key="note.note_id"
             @click="selectNote(note)"
             class="list-group-item list-group-item-action"
           >
@@ -67,7 +67,7 @@
                 <p class="mb-1 text-muted small">{{ getPreview(note.content) }}</p>
                 <small class="text-muted">
                   <i class="fas fa-calendar me-1"></i>
-                  {{ formatDate(note.updated_date || note.created_at) }}
+                  {{ formatDate(note.updated_at || note.created_at) }}
                   <span v-if="note.project_name" class="ms-3">
                     <i class="fas fa-folder me-1"></i>
                     {{ note.project_name }}

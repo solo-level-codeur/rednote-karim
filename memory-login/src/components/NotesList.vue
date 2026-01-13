@@ -209,7 +209,7 @@ export default {
 
     async deleteNoteConfirm(note) {
       if (confirm(`Êtes-vous sûr de vouloir supprimer la note "${note.title}" ?`)) {
-        await this.deleteNote(note.id)
+        await this.deleteNote(note.note_id)
       }
     },
 
@@ -252,7 +252,7 @@ export default {
 
     handleNoteSelected(note) {
       this.showSearchModal = false
-      this.$router.push(`/notes/${note.id}`)
+      this.$router.push(`/notes/${note.note_id}`)
     }
   }
 }

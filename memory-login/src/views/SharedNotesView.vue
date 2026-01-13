@@ -34,7 +34,7 @@
           <div class="row g-4">
             <div 
               v-for="note in sharedNotes" 
-              :key="note.id"
+              :key="note.note_id"
               class="col-md-6 col-lg-4"
             >
               <div class="card h-100 shadow-sm hover-card">
@@ -42,7 +42,7 @@
                   <div>
                     <h6 class="card-title mb-1">{{ note.title || 'Note sans titre' }}</h6>
                     <small class="text-muted">
-                      Partagée le {{ formatDate(note.shared_date) }}
+                      Partagée le {{ formatDate(note.shared_at) }}
                     </small>
                   </div>
                   <span 
@@ -79,7 +79,7 @@
                     <div>
                       <small class="text-muted">
                         <i class="fas fa-clock me-1"></i>
-                        Modifiée: {{ formatDate(note.updated_date) }}
+                        Modifiée: {{ formatDate(note.updated_at) }}
                       </small>
                     </div>
                   </div>
@@ -208,7 +208,7 @@ export default {
     editNote(note) {
       this.selectedNote = null
       // Rediriger vers la page dédiée de la note
-      this.$router.push(`/notes/${note.id}`)
+      this.$router.push(`/notes/${note.note_id}`)
     },
     
     getPermissionLabel(permission) {

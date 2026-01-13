@@ -51,7 +51,7 @@
                   {{ getPermissionLabel(share.permission) }}
                 </span>
               </td>
-              <td>{{ formatDate(share.shared_date) }}</td>
+              <td>{{ formatDate(share.shared_at) }}</td>
               <td>
                 <button 
                   @click="removeShare(share.id)"

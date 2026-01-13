@@ -1,0 +1,217 @@
+<template>
+  <div class="tag-manager">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2><i class="fas fa-tags"></i> Mes Tags</h2>
+      <button 
+        class="btn btn-primary btn-sm" 
+        @click="showCreateModal = true"
+      >
+        <i class="fas fa-plus"></i> Nouveau Tag
+      </button>
+    </div>
+
+    <!-- Liste des tags -->
+    <div class="row">
+      <div class="col-md-6 col-lg-4 mb-3" v-for="tag in tags" :key="tag.id">
+        <div class="card tag-card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center">
+                <span 
+                  class="tag-color-indicator me-2"
+                  :style="{ backgroundColor: tag.color }"
+                ></span>
+                <h6 class="card-title mb-0">{{ tag.name }}</h6>
+              </div>
+              
+              <div class="dropdown">
+                <button 
+                  class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                  type="button" 
+                  data-bs-toggle="dropdown"
+                >
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a class="dropdown-item" href="#" @click="editTag(tag)">
+                      <i class="fas fa-edit"></i> Modifier
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="#" @click="viewNotesByTag(tag.id)">
+                      <i class="fas fa-eye"></i> Voir les notes
+                    </a>
+                  </li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li>
+                    <a class="dropdown-item text-danger" href="#" @click="deleteTag(tag.id)">
+                      <i class="fas fa-trash"></i> Supprimer
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <small class="text-muted">
+              <i class="fas fa-calendar"></i> 
+              Créé le {{ formatDate(tag.created_at) }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message si pas de tags -->
+    <div v-if="tags.length === 0 && !loading" class="text-center py-5">
+      <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+      <h4 class="text-muted">Aucun tag trouvé</h4>
+      <p class="text-muted">Créez vos premiers tags pour organiser vos notes</p>
+    </div>
+
+    <!-- Modal de création/édition -->
+    <TagModal 
+      v-if="showCreateModal || editingTag"
+      :tag="editingTag"
+      @save="handleSaveTag"
+      @cancel="handleCancelTag"
+    />
+
+    <!-- Modal des notes par tag -->
+    <NotesByTagModal
+      v-if="showNotesModal"
+      :tagId="selectedTagId"
+      @close="showNotesModal = false"
+    />
+
+    <!-- Loading -->
+    <div v-if="loading" class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { tagsAPI } from '@/services/api'
+import TagModal from './TagModal.vue'
+import NotesByTagModal from './NotesByTagModal.vue'
+
+export default {
+  name: 'TagManager',
+  components: {
+    TagModal,
+    NotesByTagModal
+  },
+  data() {
+    return {
+      tags: [],
+      loading: false,
+      showCreateModal: false,
+      editingTag: null,
+      showNotesModal: false,
+      selectedTagId: null
+    }
+  },
+  mounted() {
+    this.loadTags()
+  },
+  methods: {
+    async loadTags() {
+      this.loading = true
+      try {
+        const response = await tagsAPI.getAllTags()
+        this.tags = response.data
+      } catch (error) {
+        console.error('Erreur lors du chargement des tags:', error)
+        this.$toast.error('Erreur lors du chargement des tags')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    editTag(tag) {
+      this.editingTag = { ...tag }
+    },
+
+    viewNotesByTag(tagId) {
+      this.selectedTagId = tagId
+      this.showNotesModal = true
+    },
+
+    async deleteTag(tagId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer ce tag ?')) {
+        try {
+          await tagsAPI.deleteTag(tagId)
+          this.tags = this.tags.filter(t => t.id !== tagId)
+          this.$toast.success('Tag supprimé avec succès')
+        } catch (error) {
+          console.error('Erreur lors de la suppression:', error)
+          this.$toast.error('Erreur lors de la suppression du tag')
+        }
+      }
+    },
+
+    async handleSaveTag(tagData) {
+      try {
+        if (this.editingTag) {
+          // Modification
+          await tagsAPI.updateTag(this.editingTag.id, tagData)
+          const index = this.tags.findIndex(t => t.id === this.editingTag.id)
+          if (index !== -1) {
+            this.tags[index] = { ...this.tags[index], ...tagData }
+          }
+          this.$toast.success('Tag modifié avec succès')
+        } else {
+          // Création
+          const response = await tagsAPI.createTag(tagData)
+          this.tags.unshift({
+            ...tagData,
+            id: response.data.id,
+            created_at: new Date().toISOString()
+          })
+          this.$toast.success('Tag créé avec succès')
+        }
+      } catch (error) {
+        console.error('Erreur lors de la sauvegarde:', error)
+        this.$toast.error('Erreur lors de la sauvegarde du tag')
+      }
+      this.handleCancelTag()
+    },
+
+    handleCancelTag() {
+      this.showCreateModal = false
+      this.editingTag = null
+    },
+
+    formatDate(dateString) {
+      return new Date(dateString).toLocaleDateString('fr-FR')
+    }
+  }
+}
+</script>
+
+<style scoped>
+.tag-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tag-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.tag-color-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #ddd;
+}
+
+.dropdown-toggle::after {
+  display: none;
+}
+</style>

@@ -1,74 +1,77 @@
 const db = require('../config/db');
 
-// Créer un nouveau projet
+// Créer un nouveau projet (compatible schema memo)
 const createProject = async (name, description, userId) => {
   const [result] = await db.query(
-    'INSERT INTO projects (name, description, creation_date, id_owner) VALUES (?, ?, CURDATE(), ?)',
+    'INSERT INTO projects (project_name, description, start_date, user_id) VALUES (?, ?, CURDATE(), ?)',
     [name, description, userId]
   );
   return result.insertId;
 };
 
-// Obtenir tous les projets d'un utilisateur (possédés + membre)
+// Obtenir tous les projets d'un utilisateur (compatible schema memo)
 const getAllProjects = async (userId) => {
   const [rows] = await db.query(`
-    SELECT DISTINCT p.*, 
-           CASE WHEN p.id_owner = ? THEN 'owner' ELSE 'member' END as user_role
+    SELECT DISTINCT p.project_id, p.project_name, p.description, p.start_date, p.end_date, 
+           p.user_id, p.created_at, p.updated_at,
+           CASE WHEN p.user_id = ? THEN 'owner' ELSE 'member' END as user_role
     FROM projects p
-    LEFT JOIN project_members pm ON p.id = pm.id_projects
-    WHERE p.id_owner = ? OR pm.id_users = ?
-    ORDER BY p.name ASC
+    LEFT JOIN project_members pm ON p.project_id = pm.project_id
+    WHERE p.user_id = ? OR pm.user_id = ?
+    ORDER BY p.project_name ASC
   `, [userId, userId, userId]);
   return rows;
 };
 
-// Obtenir un projet spécifique
+// Obtenir un projet spécifique (compatible schema memo)
 const getProjectById = async (projectId, userId) => {
-  const [rows] = await db.query('SELECT * FROM projects WHERE id = ? AND id_owner = ?', [projectId, userId]);
+  const [rows] = await db.query(
+    'SELECT * FROM projects WHERE project_id = ? AND user_id = ?', 
+    [projectId, userId]
+  );
   return rows[0];
 };
 
-// Mettre à jour un projet
+// Mettre à jour un projet (compatible schema memo)
 const updateProject = async (projectId, name, description, status, userId) => {
   const [result] = await db.query(
-    'UPDATE projects SET name = ?, description = ?, status = ? WHERE id = ? AND id_owner = ?',
-    [name, description, status, projectId, userId]
+    'UPDATE projects SET project_name = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE project_id = ? AND user_id = ?',
+    [name, description, projectId, userId]
   );
   return result.affectedRows;
 };
 
-// Supprimer un projet
+// Supprimer un projet (compatible schema memo)
 const deleteProject = async (projectId, userId) => {
-  const [result] = await db.query('DELETE FROM projects WHERE id = ? AND id_owner = ?', [projectId, userId]);
+  const [result] = await db.query(
+    'DELETE FROM projects WHERE project_id = ? AND user_id = ?', 
+    [projectId, userId]
+  );
   return result.affectedRows;
 };
 
-// Ajouter un membre à un projet avec un rôle
+// Ajouter un membre à un projet (compatible schema memo)
 const addProjectMember = async (projectId, userId, role = 'Member') => {
   try {
     const [result] = await db.query(
-      'INSERT INTO project_members (id_projects, id_users, role, joined_date) VALUES (?, ?, ?, CURDATE())',
-      [projectId, userId, role]
+      'INSERT INTO project_members (project_id, user_id) VALUES (?, ?)',
+      [projectId, userId]
     );
     return result.affectedRows > 0;
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
-      // L'utilisateur est déjà membre du projet, mettre à jour son rôle
-      const [updateResult] = await db.query(
-        'UPDATE project_members SET role = ? WHERE id_projects = ? AND id_users = ?',
-        [role, projectId, userId]
-      );
-      return updateResult.affectedRows > 0;
+      // L'utilisateur est déjà membre du projet
+      return false;
     }
     throw error;
   }
 };
 
-// Retirer un membre d'un projet
+// Retirer un membre d'un projet (compatible schema memo)
 const removeProjectMember = async (projectId, userId, requesterId) => {
   // Vérifier que le demandeur est propriétaire du projet
   const [ownerCheck] = await db.query(
-    'SELECT 1 FROM projects WHERE id = ? AND id_owner = ?',
+    'SELECT 1 FROM projects WHERE project_id = ? AND user_id = ?',
     [projectId, requesterId]
   );
   
@@ -77,19 +80,19 @@ const removeProjectMember = async (projectId, userId, requesterId) => {
   }
 
   const [result] = await db.query(
-    'DELETE FROM project_members WHERE id_projects = ? AND id_users = ?',
+    'DELETE FROM project_members WHERE project_id = ? AND user_id = ?',
     [projectId, userId]
   );
   return result.affectedRows > 0;
 };
 
-// Obtenir tous les membres d'un projet
+// Obtenir tous les membres d'un projet (compatible schema memo)
 const getProjectMembers = async (projectId, userId) => {
   // Vérifier que l'utilisateur a accès au projet
   const [accessCheck] = await db.query(`
     SELECT 1 FROM projects p
-    LEFT JOIN project_members pm ON p.id = pm.id_projects
-    WHERE p.id = ? AND (p.id_owner = ? OR pm.id_users = ?)
+    LEFT JOIN project_members pm ON p.project_id = pm.project_id
+    WHERE p.project_id = ? AND (p.user_id = ? OR pm.user_id = ?)
     LIMIT 1
   `, [projectId, userId, userId]);
   
@@ -100,30 +103,29 @@ const getProjectMembers = async (projectId, userId) => {
   // Récupérer tous les membres avec leurs informations
   const [members] = await db.query(`
     SELECT 
-      u.id_users as id,
+      u.user_id as id,
       u.firstname,
       u.lastname, 
       u.email,
-      pm.role,
-      pm.joined_date,
-      CASE WHEN p.id_owner = u.id_users THEN 'owner' ELSE 'member' END as user_type
+      pm.joined_at,
+      CASE WHEN p.user_id = u.user_id THEN 'owner' ELSE 'member' END as user_type
     FROM users u
-    LEFT JOIN project_members pm ON u.id_users = pm.id_users AND pm.id_projects = ?
-    INNER JOIN projects p ON p.id = ?
-    WHERE (p.id_owner = u.id_users OR pm.id_users IS NOT NULL)
+    LEFT JOIN project_members pm ON u.user_id = pm.user_id AND pm.project_id = ?
+    INNER JOIN projects p ON p.project_id = ?
+    WHERE (p.user_id = u.user_id OR pm.user_id IS NOT NULL)
     ORDER BY 
-      CASE WHEN p.id_owner = u.id_users THEN 0 ELSE 1 END,
-      pm.joined_date ASC
+      CASE WHEN p.user_id = u.user_id THEN 0 ELSE 1 END,
+      pm.joined_at ASC
   `, [projectId, projectId]);
 
   return members;
 };
 
-// Mettre à jour le rôle d'un membre
+// Mettre à jour le rôle d'un membre (simplifié pour schema memo)
 const updateMemberRole = async (projectId, userId, newRole, requesterId) => {
   // Vérifier que le demandeur est propriétaire du projet
   const [ownerCheck] = await db.query(
-    'SELECT 1 FROM projects WHERE id = ? AND id_owner = ?',
+    'SELECT 1 FROM projects WHERE project_id = ? AND user_id = ?',
     [projectId, requesterId]
   );
   
@@ -131,11 +133,12 @@ const updateMemberRole = async (projectId, userId, newRole, requesterId) => {
     throw new Error('Seul le propriétaire peut modifier les rôles');
   }
 
-  const [result] = await db.query(
-    'UPDATE project_members SET role = ? WHERE id_projects = ? AND id_users = ?',
-    [newRole, projectId, userId]
+  // Dans le nouveau schéma, on peut juste vérifier l'existence du membre
+  const [memberCheck] = await db.query(
+    'SELECT 1 FROM project_members WHERE project_id = ? AND user_id = ?',
+    [projectId, userId]
   );
-  return result.affectedRows > 0;
+  return memberCheck.length > 0;
 };
 
 module.exports = {

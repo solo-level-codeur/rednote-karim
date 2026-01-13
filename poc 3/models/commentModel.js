@@ -3,7 +3,7 @@ const db = require('../config/db');
 // Créer un commentaire sur une note
 const createComment = async (noteId, userId, content) => {
   const [result] = await db.query(
-    'INSERT INTO comments (content, comment_date, id_notes, id_users) VALUES (?, NOW(), ?, ?)',
+    'INSERT INTO comments (comment_text, created_at, note_id, user_id) VALUES (?, NOW(), ?, ?)',
     [content, noteId, userId]
   );
   return result.insertId;
@@ -18,9 +18,9 @@ const getCommentsByNote = async (noteId) => {
       u.lastname,
       u.email
     FROM comments c
-    INNER JOIN users u ON c.id_users = u.id_users
-    WHERE c.id_notes = ?
-    ORDER BY c.comment_date ASC
+    INNER JOIN users u ON c.user_id = u.user_id
+    WHERE c.note_id = ?
+    ORDER BY c.created_at ASC
   `, [noteId]);
   return rows;
 };
@@ -35,9 +35,9 @@ const getCommentById = async (commentId) => {
       u.email,
       n.title as note_title
     FROM comments c
-    INNER JOIN users u ON c.id_users = u.id_users
-    INNER JOIN notes n ON c.id_notes = n.id
-    WHERE c.id = ?
+    INNER JOIN users u ON c.user_id = u.user_id
+    INNER JOIN notes n ON c.note_id = n.note_id
+    WHERE c.comment_id = ?
   `, [commentId]);
   return rows[0];
 };
@@ -45,7 +45,7 @@ const getCommentById = async (commentId) => {
 // Mettre à jour un commentaire
 const updateComment = async (commentId, content, userId) => {
   const [result] = await db.query(
-    'UPDATE comments SET content = ?, comment_date = NOW() WHERE id = ? AND id_users = ?',
+    'UPDATE comments SET comment_text = ?, created_at = NOW() WHERE comment_id = ? AND user_id = ?',
     [content, commentId, userId]
   );
   return result.affectedRows;
@@ -54,7 +54,7 @@ const updateComment = async (commentId, content, userId) => {
 // Supprimer un commentaire
 const deleteComment = async (commentId, userId) => {
   const [result] = await db.query(
-    'DELETE FROM comments WHERE id = ? AND id_users = ?',
+    'DELETE FROM comments WHERE comment_id = ? AND user_id = ?',
     [commentId, userId]
   );
   return result.affectedRows;
@@ -64,7 +64,7 @@ const deleteComment = async (commentId, userId) => {
 const canCommentNote = async (noteId, userId) => {
   // Vérifier si c'est le propriétaire de la note
   const [ownerCheck] = await db.query(
-    'SELECT id FROM notes WHERE id = ? AND id_users = ?',
+    'SELECT note_id FROM notes WHERE note_id = ? AND user_id = ?',
     [noteId, userId]
   );
   
@@ -74,7 +74,7 @@ const canCommentNote = async (noteId, userId) => {
 
   // Vérifier si la note est partagée avec l'utilisateur
   const [shareCheck] = await db.query(
-    'SELECT permission FROM note_shares WHERE id_notes = ? AND id_users = ?',
+    'SELECT permission FROM note_shares WHERE note_id = ? AND user_id = ?',
     [noteId, userId]
   );
 
@@ -88,19 +88,18 @@ const canCommentNote = async (noteId, userId) => {
 
   // Vérifier si l'utilisateur est membre du projet de cette note
   const [projectCheck] = await db.query(`
-    SELECT pm.role, p.id as project_id
+    SELECT pm.user_id, p.project_id as project_id
     FROM notes n
-    INNER JOIN project_members pm ON n.id_projects = pm.id_projects
-    INNER JOIN projects p ON n.id_projects = p.id
-    WHERE n.id = ? AND pm.id_users = ?
+    INNER JOIN project_members pm ON n.project_id = pm.project_id
+    INNER JOIN projects p ON n.project_id = p.project_id
+    WHERE n.note_id = ? AND pm.user_id = ?
   `, [noteId, userId]);
 
   if (projectCheck.length > 0) {
     return { 
       canComment: true, 
       isOwner: false,
-      projectMember: true,
-      projectRole: projectCheck[0].role 
+      projectMember: true
     };
   }
 
@@ -113,12 +112,12 @@ const getRecentComments = async (userId, limit = 10) => {
     SELECT 
       c.*,
       n.title as note_title,
-      n.id as note_id,
-      n.id_users as note_owner_id
+      n.note_id as note_id,
+      n.user_id as note_owner_id
     FROM comments c
-    INNER JOIN notes n ON c.id_notes = n.id
-    WHERE c.id_users = ?
-    ORDER BY c.comment_date DESC
+    INNER JOIN notes n ON c.note_id = n.note_id
+    WHERE c.user_id = ?
+    ORDER BY c.created_at DESC
     LIMIT ?
   `, [userId, limit]);
   return rows;
@@ -127,7 +126,7 @@ const getRecentComments = async (userId, limit = 10) => {
 // Compter les commentaires d'une note
 const getCommentCount = async (noteId) => {
   const [rows] = await db.query(
-    'SELECT COUNT(*) as count FROM comments WHERE id_notes = ?',
+    'SELECT COUNT(*) as count FROM comments WHERE note_id = ?',
     [noteId]
   );
   return rows[0].count;

@@ -3,7 +3,7 @@ const db = require('../config/db');
 // Partager une note avec un utilisateur
 const shareNote = async (noteId, sharedWithUserId, sharedByUserId, permission = 'read') => {
   const [result] = await db.query(
-    'INSERT INTO note_shares (id_notes, id_users, shared_by, permission, shared_date) VALUES (?, ?, ?, ?, NOW())',
+    'INSERT INTO note_shares (note_id, user_id, shared_by, permission, shared_at) VALUES (?, ?, ?, ?, NOW())',
     [noteId, sharedWithUserId, sharedByUserId, permission]
   );
   return result.insertId;
@@ -12,7 +12,7 @@ const shareNote = async (noteId, sharedWithUserId, sharedByUserId, permission = 
 // Supprimer un partage
 const unshareNote = async (noteId, userId, ownerId) => {
   const [result] = await db.query(
-    'DELETE FROM note_shares WHERE id_notes = ? AND id_users = ? AND shared_by = ?',
+    'DELETE FROM note_shares WHERE note_id = ? AND user_id = ? AND shared_by = ?',
     [noteId, userId, ownerId]
   );
   return result.affectedRows;
@@ -24,16 +24,16 @@ const getSharedNotes = async (userId) => {
     SELECT 
       n.*,
       ns.permission,
-      ns.shared_date,
+      ns.shared_at,
       u.firstname as shared_by_firstname,
       u.lastname as shared_by_lastname,
-      p.name as project_name
+      p.project_name as project_name
     FROM notes n
-    INNER JOIN note_shares ns ON n.id = ns.id_notes
-    INNER JOIN users u ON ns.shared_by = u.id_users
-    LEFT JOIN projects p ON n.id_projects = p.id
-    WHERE ns.id_users = ?
-    ORDER BY ns.shared_date DESC
+    INNER JOIN note_shares ns ON n.note_id = ns.note_id
+    INNER JOIN users u ON ns.shared_by = u.user_id
+    LEFT JOIN projects p ON n.project_id = p.project_id
+    WHERE ns.user_id = ?
+    ORDER BY ns.shared_at DESC
   `, [userId]);
   return rows;
 };
@@ -42,15 +42,15 @@ const getSharedNotes = async (userId) => {
 const getNoteShares = async (noteId, ownerId) => {
   const [rows] = await db.query(`
     SELECT 
-      u.id_users,
+      u.user_id,
       u.firstname,
       u.lastname,
       u.email,
       ns.permission,
-      ns.shared_date
+      ns.shared_at
     FROM note_shares ns
-    INNER JOIN users u ON ns.id_users = u.id_users
-    WHERE ns.id_notes = ? AND ns.shared_by = ?
+    INNER JOIN users u ON ns.user_id = u.user_id
+    WHERE ns.note_id = ? AND ns.shared_by = ?
   `, [noteId, ownerId]);
   return rows;
 };
@@ -59,7 +59,7 @@ const getNoteShares = async (noteId, ownerId) => {
 const canAccessNote = async (noteId, userId) => {
   // Vérifier si c'est le propriétaire
   const [ownerCheck] = await db.query(
-    'SELECT id FROM notes WHERE id = ? AND id_users = ?',
+    'SELECT note_id FROM notes WHERE note_id = ? AND user_id = ?',
     [noteId, userId]
   );
   
@@ -69,7 +69,7 @@ const canAccessNote = async (noteId, userId) => {
 
   // Vérifier si la note est partagée avec l'utilisateur
   const [shareCheck] = await db.query(
-    'SELECT permission FROM note_shares WHERE id_notes = ? AND id_users = ?',
+    'SELECT permission FROM note_shares WHERE note_id = ? AND user_id = ?',
     [noteId, userId]
   );
 
@@ -87,7 +87,7 @@ const canAccessNote = async (noteId, userId) => {
 // Mettre à jour les permissions de partage
 const updateSharePermission = async (noteId, userId, newPermission, ownerId) => {
   const [result] = await db.query(
-    'UPDATE note_shares SET permission = ? WHERE id_notes = ? AND id_users = ? AND shared_by = ?',
+    'UPDATE note_shares SET permission = ? WHERE note_id = ? AND user_id = ? AND shared_by = ?',
     [newPermission, noteId, userId, ownerId]
   );
   return result.affectedRows;
@@ -98,17 +98,17 @@ const getAllAccessibleNotes = async (userId, projectId = null) => {
   let query = `
     SELECT 
       n.*,
-      p.name as project_name,
+      p.project_name as project_name,
       'owner' as access_type,
       'write' as permission
     FROM notes n
-    LEFT JOIN projects p ON n.id_projects = p.id
-    WHERE n.id_users = ?`;
+    LEFT JOIN projects p ON n.project_id = p.project_id
+    WHERE n.user_id = ?`;
   
   let params = [userId];
   
   if (projectId) {
-    query += ` AND n.id_projects = ?`;
+    query += ` AND n.project_id = ?`;
     params.push(parseInt(projectId, 10));
   }
 
@@ -117,22 +117,22 @@ const getAllAccessibleNotes = async (userId, projectId = null) => {
 
     SELECT 
       n.*,
-      p.name as project_name,
+      p.project_name as project_name,
       'shared' as access_type,
       ns.permission
     FROM notes n
-    INNER JOIN note_shares ns ON n.id = ns.id_notes
-    LEFT JOIN projects p ON n.id_projects = p.id
-    WHERE ns.id_users = ?`;
+    INNER JOIN note_shares ns ON n.note_id = ns.note_id
+    LEFT JOIN projects p ON n.project_id = p.project_id
+    WHERE ns.user_id = ?`;
     
   params.push(userId);
   
   if (projectId) {
-    query += ` AND n.id_projects = ?`;
+    query += ` AND n.project_id = ?`;
     params.push(parseInt(projectId, 10));
   }
 
-  query += ` ORDER BY updated_date DESC`;
+  query += ` ORDER BY updated_at DESC`;
   
   console.log('SQL Query:', query);
   console.log('Params:', params);

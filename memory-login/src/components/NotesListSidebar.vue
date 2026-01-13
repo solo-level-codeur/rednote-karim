@@ -6,8 +6,8 @@
       <div class="mb-3">
         <select class="form-select form-select-sm" v-model="selectedProjectId" @change="onProjectChange">
           <option value="">Tous les projets</option>
-          <option v-for="project in projects" :key="project.id" :value="project.id">
-            {{ project.name }}
+          <option v-for="project in projects" :key="project.project_id" :value="project.project_id">
+            {{ project.project_name }}
           </option>
         </select>
       </div>
@@ -65,9 +65,9 @@
       <div v-else class="py-2">
         <div 
           v-for="note in filteredNotes" 
-          :key="note.id"
+          :key="note.note_id"
           class="note-item"
-          :class="{ 'active': selectedNote && selectedNote.id === note.id }"
+          :class="{ 'active': selectedNote && selectedNote.id === note.note_id }"
           @click="selectNote(note)"
         >
           <div class="note-header">
@@ -88,7 +88,7 @@
                 <i class="fas fa-user"></i> {{ note.authorName }}
               </small>
             </div>
-            <small class="note-date">{{ formatDate(note.updated_date || note.updated_at || note.creation_date || note.created_at) }}</small>
+            <small class="note-date">{{ formatDate(note.updated_at || note.updated_at || note.created_at || note.created_at) }}</small>
           </div>
           <div class="note-preview">
             {{ getTextPreview(note.content) }}
@@ -166,7 +166,7 @@ export default {
   },
   methods: {
     selectNote(note) {
-      this.$router.push(`/notes/${note.id}`)
+      this.$router.push(`/notes/${note.note_id}`)
     },
 
     createNewNote() {

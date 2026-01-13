@@ -52,7 +52,7 @@
       <div v-else>
         <div 
           v-for="comment in comments" 
-          :key="comment.id"
+          :key="comment.comment_id"
           class="comment-item mb-3"
         >
           <div class="d-flex">
@@ -69,9 +69,9 @@
                     {{ comment.firstname }} {{ comment.lastname }}
                   </strong>
                   <small class="text-muted ms-2">
-                    {{ formatDate(comment.creation_date) }}
+                    {{ formatDate(comment.created_at) }}
                   </small>
-                  <small v-if="comment.updated_date && comment.updated_date !== comment.creation_date" class="text-muted ms-1">
+                  <small v-if="comment.updated_at && comment.updated_at !== comment.created_at" class="text-muted ms-1">
                     (modifié)
                   </small>
                 </div>
@@ -92,7 +92,7 @@
                         </a>
                       </li>
                       <li>
-                        <a class="dropdown-item text-danger" href="#" @click="deleteComment(comment.id)">
+                        <a class="dropdown-item text-danger" href="#" @click="deleteComment(comment.comment_id)">
                           <i class="fas fa-trash"></i> Supprimer
                         </a>
                       </li>
@@ -102,8 +102,8 @@
               </div>
               
               <!-- Contenu du commentaire -->
-              <div v-if="editingComment?.id !== comment.id" class="comment-text mt-2">
-                {{ comment.content }}
+              <div v-if="editingComment?.comment_id !== comment.comment_id" class="comment-text mt-2">
+                {{ comment.comment_text }}
               </div>
               
               <!-- Formulaire d'édition -->
@@ -206,17 +206,17 @@ export default {
 
     editComment(comment) {
       this.editingComment = comment
-      this.editingContent = comment.content
+      this.editingContent = comment.comment_text
     },
 
     async handleUpdateComment() {
       try {
-        const response = await commentsAPI.updateComment(this.editingComment.id, {
+        const response = await commentsAPI.updateComment(this.editingComment.comment_id, {
           content: this.editingContent.trim()
         })
         
         // Mettre à jour le commentaire localement
-        const index = this.comments.findIndex(c => c.id === this.editingComment.id)
+        const index = this.comments.findIndex(c => c.comment_id === this.editingComment.comment_id)
         if (index !== -1) {
           this.comments[index] = response.data.comment
         }
@@ -233,7 +233,7 @@ export default {
       if (confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?')) {
         try {
           await commentsAPI.deleteComment(commentId)
-          this.comments = this.comments.filter(c => c.id !== commentId)
+          this.comments = this.comments.filter(c => c.comment_id !== commentId)
           this.$toast.success('Commentaire supprimé avec succès')
         } catch (error) {
           console.error('Erreur lors de la suppression du commentaire:', error)
@@ -254,7 +254,7 @@ export default {
 
     canEditComment(comment) {
       // L'utilisateur peut modifier/supprimer ses propres commentaires
-      return comment.id_users === this.currentUserId
+      return comment.user_id === this.currentUserId
     },
 
     getInitials(firstname, lastname) {

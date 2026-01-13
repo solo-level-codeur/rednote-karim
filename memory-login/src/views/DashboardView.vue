@@ -127,8 +127,8 @@ export default {
             ? `${note.author_firstname} ${note.author_lastname}` 
             : null
         })).sort((a, b) => {
-          const dateA = new Date(a.updated_date || a.updated_at || a.creation_date || a.created_at)
-          const dateB = new Date(b.updated_date || b.updated_at || b.creation_date || b.created_at)
+          const dateA = new Date(a.updated_at || a.updated_at || a.created_at || a.created_at)
+          const dateB = new Date(b.updated_at || b.updated_at || b.created_at || b.created_at)
           return dateB - dateA
         })
         
@@ -160,7 +160,7 @@ export default {
     },
 
     selectNote(note) {
-      this.$router.push(`/notes/${note.id}`)
+      this.$router.push(`/notes/${note.note_id}`)
     },
 
     createNewNote() {
@@ -172,13 +172,13 @@ export default {
       this.loading = true
       
       try {
-        await notesAPI.deleteNote(note.id)
+        await notesAPI.deleteNote(note.note_id)
         
         // Retirer la note de la liste locale
-        this.notes = this.notes.filter(n => n.id !== note.id)
+        this.notes = this.notes.filter(n => n.id !== note.note_id)
         
         // Si la note supprimée était sélectionnée, désélectionner
-        if (this.selectedNote && this.selectedNote.id === note.id) {
+        if (this.selectedNote && this.selectedNote.id === note.note_id) {
           this.selectedNote = null
           this.isCreating = false
         }

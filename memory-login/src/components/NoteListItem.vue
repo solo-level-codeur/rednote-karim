@@ -41,7 +41,7 @@
       <div class="note-meta d-flex justify-content-between align-items-center">
         <small class="text-muted">
           <i class="fas fa-calendar me-1"></i>
-          {{ formatDate(note.updated_date || note.creation_date) }}
+          {{ formatDate(note.updated_at || note.created_at) }}
           
           <span v-if="note.project_name" class="ms-3">
             <i class="fas fa-folder me-1"></i>
@@ -73,7 +73,7 @@
               </li>
               <li><hr class="dropdown-divider"></li>
               <li>
-                <a class="dropdown-item text-danger" href="#" @click="$emit('delete', note.id)">
+                <a class="dropdown-item text-danger" href="#" @click="$emit('delete', note.note_id)">
                   <i class="fas fa-trash me-2"></i> Supprimer
                 </a>
               </li>

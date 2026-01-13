@@ -3,7 +3,10 @@ const jwt = require('jsonwebtoken');
 
 // Inscription d'un nouvel utilisateur
 const registerUser = async (req, res) => {
-  const { firstname, lastname, email, password, roleId = 3 } = req.body;
+  const { firstname, lastname, email, password, telephone, description, roleId = 1 } = req.body;
+
+  console.log('🔍 DEBUG Register - Body reçu:', req.body);
+  console.log('📝 DEBUG Register - Paramètres:', { firstname, lastname, email, telephone, description, roleId });
 
   try {
     const userExists = await findUserByEmail(email);
@@ -11,7 +14,7 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Utilisateur déjà existant' });
     }
 
-    const userId = await createUser(firstname, lastname, email, password, roleId);
+    const userId = await createUser(firstname, lastname, email, password, telephone, description, roleId);
     const token = generateToken(userId);
 
     res.status(201).json({
@@ -22,7 +25,8 @@ const registerUser = async (req, res) => {
       token,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur du serveur' });
+    console.error('❌ ERROR Register:', error);
+    res.status(500).json({ message: 'Erreur du serveur', error: error.message });
   }
 };
 
@@ -33,13 +37,12 @@ const loginUser = async (req, res) => {
   try {
     const user = await findUserByEmail(email);
     if (user && (await matchPassword(password, user.password))) {
-      const token = generateToken(user.id_users);
+      const token = generateToken(user.user_id);
       res.json({
-        id: user.id_users,
+        id: user.user_id,
         firstname: user.firstname,
         lastname: user.lastname,
         email: user.email,
-        role: user.id_roles === 1 ? 'Admin' : user.id_roles === 2 ? 'Manager' : user.id_roles === 3 ? 'Developer' : 'Viewer',
         token,
       });
     } else {
@@ -58,10 +61,12 @@ const getUserProfile = async (req, res) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
     res.json({
-      id: user.id_users,
+      id: user.user_id,
       firstname: user.firstname,
       lastname: user.lastname,
-      email: user.email
+      email: user.email,
+      telephone: user.telephone,
+      description: user.description
     });
   } catch (error) {
     console.error('Erreur lors de la récupération du profil utilisateur:', error);
@@ -72,12 +77,6 @@ const getUserProfile = async (req, res) => {
 // ADMIN - Obtenir tous les utilisateurs
 const getUsersAdmin = async (req, res) => {
   try {
-    // Vérifier que l'utilisateur est admin
-    const user = await getUserById(req.user.id);
-    if (!user || user.id_roles !== 1) {
-      return res.status(403).json({ message: 'Accès refusé - Admin requis' });
-    }
-
     const users = await getAllUsers();
     res.json({
       success: true,
@@ -93,12 +92,6 @@ const getUsersAdmin = async (req, res) => {
 const updateUserRoleAdmin = async (req, res) => {
   try {
     const { userId, roleId } = req.body;
-
-    // Vérifier que l'utilisateur est admin
-    const user = await getUserById(req.user.id);
-    if (!user || user.id_roles !== 1) {
-      return res.status(403).json({ message: 'Accès refusé - Admin requis' });
-    }
 
     const success = await updateUserRole(userId, roleId);
     if (success) {
@@ -120,13 +113,7 @@ const deleteUserAdmin = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Vérifier que l'utilisateur est admin
-    const user = await getUserById(req.user.id);
-    if (!user || user.id_roles !== 1) {
-      return res.status(403).json({ message: 'Accès refusé - Admin requis' });
-    }
-
-    // Empêcher l'admin de se supprimer lui-même
+    // Empêcher de se supprimer soi-même
     if (parseInt(userId) === req.user.id) {
       return res.status(400).json({ message: 'Impossible de supprimer votre propre compte' });
     }
@@ -170,12 +157,12 @@ const getUserProfileWithStatsController = async (req, res) => {
 // Mettre à jour le profil utilisateur
 const updateUserProfileController = async (req, res) => {
   try {
-    const { firstname, lastname, email, bio, job_title, department, phone, avatar_url, linkedin_url, github_url } = req.body;
+    const { firstname, lastname, email, telephone, description } = req.body;
     
     // Vérifier que l'email n'est pas déjà utilisé par un autre utilisateur
     if (email) {
       const existingUser = await findUserByEmail(email);
-      if (existingUser && existingUser.id_users !== req.user.id) {
+      if (existingUser && existingUser.user_id !== req.user.id) {
         return res.status(400).json({ message: 'Cet email est déjà utilisé par un autre utilisateur' });
       }
     }
@@ -184,13 +171,8 @@ const updateUserProfileController = async (req, res) => {
       firstname: firstname || null,
       lastname: lastname || null,
       email: email || null,
-      bio: bio || null,
-      job_title: job_title || null,
-      department: department || null,
-      phone: phone || null,
-      avatar_url: avatar_url || null,
-      linkedin_url: linkedin_url || null,
-      github_url: github_url || null
+      telephone: telephone || null,
+      description: description || null
     };
     
     const success = await updateUserProfile(req.user.id, profileData);

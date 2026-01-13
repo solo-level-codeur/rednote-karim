@@ -8,7 +8,7 @@
           📁
         </div>
         <div class="flex-grow-1">
-          <h5 class="card-title mb-2">{{ project.name }}</h5>
+          <h5 class="card-title mb-2">{{ project.project_name }}</h5>
           <p class="card-text text-muted mb-3">
             {{ project.description || 'Aucune description' }}
           </p>
@@ -19,7 +19,7 @@
     
     <div class="card-footer bg-transparent border-0">
       <small class="text-muted">
-        <i class="fas fa-user me-2"></i>Propriétaire: {{ project.owner }}
+        <i class="fas fa-user me-2"></i>Propriétaire: {{ project.owner_name || project.owner || 'Inconnu' }}
       </small>
     </div>
   </div>

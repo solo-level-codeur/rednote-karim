@@ -23,14 +23,14 @@
                 <i class="fas fa-folder me-1"></i>Projets
               </router-link>
             </li>
-            <li class="breadcrumb-item active">{{ project.name }}</li>
+            <li class="breadcrumb-item active">{{ project.project_name }}</li>
           </ol>
         </nav>
       </div>
       
       <div class="hero-section">
         <AppHeader 
-          :greeting="project ? `Projet: ${project.name}` : 'Notes'"
+          :greeting="project ? `Projet: ${project.project_name}` : 'Notes'"
           :subtitle="'Organisez vos idées, créez vos notes'"
           :showLogout="false" />
       </div>

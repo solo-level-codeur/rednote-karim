@@ -64,15 +64,17 @@ const getNoteByIdController = async (req, res) => {
 // Mettre à jour une note
 const updateNoteController = async (req, res) => {
   const { id } = req.params;
-  const { title, content } = req.body;
+  const { title, content, projectId } = req.body;
   const userId = req.user.id; // ID de l'utilisateur authentifié
 
+  console.log('🔧 DEBUG Update note:', { id, title, content, projectId, userId });
+
   try {
-    const success = await updateNote(id, title, content, userId);
+    const success = await updateNote(id, title, content, userId, projectId);
     if (!success) {
       return res.status(404).json({ message: 'Note non trouvée' });
     }
-    res.json({ id, title, content, userId });
+    res.json({ id, title, content, projectId, userId });
   } catch (error) {
     console.error('Erreur lors de la mise à jour de la note :', error);
     res.status(500).json({ message: 'Erreur du serveur' });
@@ -84,6 +86,8 @@ const deleteNoteController = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id; // ID de l'utilisateur authentifié
 
+  console.log('🗑️ DEBUG Delete - Note ID:', id, 'User ID:', userId);
+
   try {
     const success = await deleteNote(id, userId);
     if (!success) {
@@ -91,8 +95,8 @@ const deleteNoteController = async (req, res) => {
     }
     res.json({ message: 'Note supprimée avec succès' });
   } catch (error) {
-    console.error('Erreur lors de la suppression de la note :', error);
-    res.status(500).json({ message: 'Erreur du serveur' });
+    console.error('❌ ERROR Delete note:', error);
+    res.status(500).json({ message: 'Erreur du serveur', error: error.message });
   }
 };
 

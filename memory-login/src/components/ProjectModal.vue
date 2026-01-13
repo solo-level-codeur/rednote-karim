@@ -57,12 +57,24 @@
                 <!-- Ajouter un membre -->
                 <div class="row mb-2">
                   <div class="col-md-5">
-                    <input 
-                      type="number" 
-                      class="form-control form-control-sm" 
+                    <select 
+                      class="form-select form-select-sm" 
                       v-model="newMember.userId"
-                      placeholder="ID Utilisateur"
+                      :disabled="loadingUsers"
                     >
+                      <option value="">Sélectionner un utilisateur</option>
+                      <option 
+                        v-for="user in availableUsers" 
+                        :key="user.user_id" 
+                        :value="user.user_id"
+                      >
+                        {{ user.firstname }} {{ user.lastname }} ({{ user.email }})
+                      </option>
+                    </select>
+                    <div v-if="loadingUsers" class="form-text">
+                      <i class="spinner-border spinner-border-sm me-1"></i>
+                      Chargement...
+                    </div>
                   </div>
                   <div class="col-md-4">
                     <select class="form-select form-select-sm" v-model="newMember.role">
@@ -93,7 +105,7 @@
                       :key="index"
                       class="badge bg-primary d-flex align-items-center"
                     >
-                      ID: {{ member.userId }} ({{ member.role }})
+                      {{ getUserDisplayName(member.userId) }} ({{ member.role }})
                       <button 
                         type="button" 
                         class="btn-close btn-close-white ms-2"
@@ -127,6 +139,8 @@
 </template>
 
 <script>
+import { authAPI } from '../services/api'
+
 export default {
   name: 'ProjectModal',
   props: {
@@ -146,24 +160,55 @@ export default {
       newMember: {
         userId: '',
         role: 'Member'
-      }
+      },
+      allUsers: [],
+      loadingUsers: false
     }
   },
-  mounted() {
+  computed: {
+    availableUsers() {
+      // Filtrer les utilisateurs qui ne sont pas déjà dans la liste des membres
+      const memberIds = this.formData.members.map(m => m.userId)
+      return this.allUsers.filter(user => !memberIds.includes(user.user_id))
+    }
+  },
+  async mounted() {
     if (this.project) {
       this.formData = {
-        name: this.project.name || '',
+        name: this.project.project_name || '',
         description: this.project.description || '',
         status: this.project.status || 'New',
         members: [] // Pas de gestion des membres en modification
       }
     }
+    // Charger les utilisateurs pour la sélection
+    await this.loadUsers()
   },
   methods: {
+    async loadUsers() {
+      this.loadingUsers = true
+      try {
+        const response = await authAPI.getAllUsers()
+        this.allUsers = response.data.users || []
+      } catch (error) {
+        console.error('Erreur lors du chargement des utilisateurs:', error)
+      } finally {
+        this.loadingUsers = false
+      }
+    },
+
     handleSubmit() {
       if (this.formData.name.trim()) {
         this.$emit('save', this.formData)
       }
+    },
+
+    getUserDisplayName(userId) {
+      const user = this.allUsers.find(u => u.user_id === userId)
+      if (user) {
+        return `${user.firstname} ${user.lastname}`
+      }
+      return `ID: ${userId}`
     },
 
     addMemberToList() {

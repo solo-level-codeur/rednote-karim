@@ -68,7 +68,7 @@ export default {
         ...note,
         type: 'personal',
         authorName: 'Me', // Or user's name from store
-        uniqueId: `p-${note.id}`,
+        uniqueId: `p-${note.note_id}`,
         permission: 'write' // Owner has full access
       }))
 
@@ -76,7 +76,7 @@ export default {
         ...note,
         type: 'shared',
         authorName: `${note.shared_by_firstname} ${note.shared_by_lastname}`,
-        uniqueId: `s-${note.id}`,
+        uniqueId: `s-${note.note_id}`,
         // permission is already in note object
       }))
 
@@ -118,7 +118,7 @@ export default {
     },
     openNote(note) {
       // Aller vers la page dédiée au lieu du modal
-      this.$router.push(`/notes/${note.id}`)
+      this.$router.push(`/notes/${note.note_id}`)
     },
     async handleCreateNote(noteData) {
       try {

@@ -124,7 +124,7 @@
             <div v-if="recentNotes.length > 0">
               <div 
                 v-for="note in recentNotes" 
-                :key="note.id"
+                :key="note.note_id"
                 class="list-group-item list-group-item-action border-0 border-bottom"
                 style="cursor: pointer;"
                 @click="openNote(note)"
@@ -136,7 +136,7 @@
                       <small class="text-muted">
                         <i class="fas fa-folder me-1"></i>{{ note.project_name || 'Elite Memory' }}
                       </small>
-                      <small class="text-muted">{{ formatDate(note.updated_date || note.creation_date) }}</small>
+                      <small class="text-muted">{{ formatDate(note.updated_at || note.created_at) }}</small>
                     </div>
                     <p class="text-muted small mb-2">{{ getTextPreview(note.content) }}</p>
                     
@@ -228,7 +228,7 @@ export default {
 
         // Notes récentes (5 dernières)
         this.recentNotes = notes
-          .sort((a, b) => new Date(b.updated_date || b.creation_date) - new Date(a.updated_date || a.creation_date))
+          .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
           .slice(0, 5)
 
         // Données d'activité pour le graphique
@@ -247,7 +247,7 @@ export default {
       const currentYear = new Date().getFullYear()
       
       return notes.filter(note => {
-        const noteDate = new Date(note.creation_date)
+        const noteDate = new Date(note.created_at)
         return noteDate.getMonth() === currentMonth && noteDate.getFullYear() === currentYear
       }).length
     },
@@ -267,7 +267,7 @@ export default {
         date.setDate(date.getDate() - i)
         
         const dayNotes = notes.filter(note => {
-          const noteDate = new Date(note.creation_date || note.updated_date)
+          const noteDate = new Date(note.created_at || note.updated_at)
           return noteDate.toDateString() === date.toDateString()
         }).length
 
@@ -281,7 +281,7 @@ export default {
     },
 
     openNote(note) {
-      this.$router.push(`/notes/${note.id}`)
+      this.$router.push(`/notes/${note.note_id}`)
     },
 
     createNewNote() {

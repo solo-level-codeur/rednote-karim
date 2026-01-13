@@ -34,7 +34,7 @@
     <div v-else class="row g-4">
       <div 
         v-for="note in notes" 
-        :key="note.id"
+        :key="note.note_id"
         class="col-12 col-md-6 col-xl-4">
         <NoteCard 
           :note="note"
@@ -68,7 +68,7 @@ export default {
   emits: ['delete-note', 'tags-updated', 'project-updated'],
   methods: {
     openNoteDetail(note) {
-      this.$router.push(`/notes/${note.id}`)
+      this.$router.push(`/notes/${note.note_id}`)
     }
   }
 }

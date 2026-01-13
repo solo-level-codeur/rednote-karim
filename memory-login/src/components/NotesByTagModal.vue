@@ -30,9 +30,9 @@
             <div class="note-list">
               <div 
                 v-for="note in notes" 
-                :key="note.id"
+                :key="note.note_id"
                 class="card mb-3 note-card"
-                @click="openNote(note.id)"
+                @click="openNote(note.note_id)"
               >
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-start">
@@ -44,7 +44,7 @@
                       <div class="note-meta">
                         <small class="text-muted">
                           <i class="fas fa-calendar"></i> 
-                          {{ formatDate(note.updated_date) }}
+                          {{ formatDate(note.updated_at) }}
                         </small>
                         <small v-if="note.project_name" class="text-muted ms-3">
                           <i class="fas fa-folder"></i> 
