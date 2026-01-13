@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import DashboardView from '../views/DashboardView.vue'
+import HomeView from '../views/HomeView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import NotesView from '../views/NotesView.vue'
 import ProjectsView from '../views/ProjectsView.vue'
@@ -15,12 +16,18 @@ import { authStore } from '../stores/auth'
 const routes = [
   {
     path: '/',
-    redirect: '/login'
+    redirect: '/home'
   },
   {
     path: '/login',
     name: 'login',
     component: LoginView
+  },
+  {
+    path: '/home',
+    name: 'home',
+    component: HomeView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/dashboard', // Nouvelle route
@@ -117,7 +124,7 @@ router.beforeEach((to, from, next) => {
     // Seuls les admins peuvent accéder aux pages admin
     next('/dashboard')
   } else if (to.name === 'login' && authStore.state.isAuthenticated) {
-    next('/dashboard')
+    next('/home')
   } else if (to.name === 'register' && authStore.state.isAuthenticated && authStore.state.user?.role !== 'Admin') {
     // Si connecté mais pas admin, rediriger
     next('/dashboard')

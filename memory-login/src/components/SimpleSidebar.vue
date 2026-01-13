@@ -14,6 +14,13 @@
     <nav class="flex-grow-1 p-3">
       <ul class="nav nav-pills flex-column">
         <li class="nav-item mb-1">
+          <router-link to="/home" class="nav-link text-white" active-class="active">
+            <i class="fas fa-home me-2"></i>
+            Accueil
+          </router-link>
+        </li>
+        
+        <li class="nav-item mb-1">
           <router-link to="/dashboard" class="nav-link text-white" active-class="active">
             <i class="fas fa-tachometer-alt me-2"></i>
             Dashboard
