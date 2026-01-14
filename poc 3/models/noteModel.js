@@ -73,21 +73,13 @@ const getAllNotesFromProject = async (projectId, userId, isAdminAccess = false) 
 
 // Obtenir une note spécifique (compatible schema memo)
 const getNoteById = async (id, userId, isAdminAccess = false) => {
-  if (isAdminAccess) {
-    // Admin peut voir toutes les notes
-    const [rows] = await db.query(
-      'SELECT note_id, title, content, user_id, project_id, created_at, updated_at FROM notes WHERE note_id = ?', 
-      [id]
-    );
-    return rows[0];
-  } else {
-    // Utilisateurs normaux voient seulement leurs notes
-    const [rows] = await db.query(
-      'SELECT note_id, title, content, user_id, project_id, created_at, updated_at FROM notes WHERE note_id = ? AND user_id = ?', 
-      [id, userId]
-    );
-    return rows[0];
-  }
+  // L'autorisation est déjà gérée par le middleware authorizeNoteOwner
+  // Donc on récupère directement la note par son ID
+  const [rows] = await db.query(
+    'SELECT note_id, title, content, user_id, project_id, created_at, updated_at FROM notes WHERE note_id = ?', 
+    [id]
+  );
+  return rows[0];
 };
 
 // Créer une nouvelle note (compatible schema memo)
@@ -125,19 +117,27 @@ const createNote = async (title, content, userId, projectId = null) => {
 
 // Mettre à jour une note (compatible schema memo)
 const updateNote = async (id, title, content, userId, projectId = null, isAdminAccess = false) => {
+  // Construire la requête dynamiquement selon les champs à mettre à jour
+  let updateFields = ['title = ?', 'content = ?', 'updated_at = CURRENT_TIMESTAMP'];
+  let params = [title, content];
+  
+  // Ne mettre à jour project_id que si explicitement fourni et différent de null
+  if (projectId !== null && projectId !== undefined) {
+    updateFields.push('project_id = ?');
+    params.push(projectId);
+  }
+  
   if (isAdminAccess) {
     // Admin peut modifier toutes les notes
-    const [result] = await db.query(
-      'UPDATE notes SET title = ?, content = ?, project_id = ?, updated_at = CURRENT_TIMESTAMP WHERE note_id = ?', 
-      [title, content, projectId, id]
-    );
+    const query = `UPDATE notes SET ${updateFields.join(', ')} WHERE note_id = ?`;
+    params.push(id);
+    const [result] = await db.query(query, params);
     return result.affectedRows;
   } else {
-    // Utilisateurs normaux modifient seulement leurs notes
-    const [result] = await db.query(
-      'UPDATE notes SET title = ?, content = ?, project_id = ?, updated_at = CURRENT_TIMESTAMP WHERE note_id = ? AND user_id = ?', 
-      [title, content, projectId, id, userId]
-    );
+    // Utilisateurs normaux modifient seulement leurs notes (mais l'autorisation est gérée par le middleware)
+    const query = `UPDATE notes SET ${updateFields.join(', ')} WHERE note_id = ?`;
+    params.push(id);
+    const [result] = await db.query(query, params);
     return result.affectedRows;
   }
 };

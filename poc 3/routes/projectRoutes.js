@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middlewares/authMiddleware');
+const { protect, authorizeProjectDelete } = require('../middlewares/authMiddleware');
 const { checkPermission } = require('../middlewares/permissionMiddleware');
 const { 
   createProjectController, 
@@ -22,7 +22,7 @@ router.post('/', checkPermission('CREATE_PROJECTS'), createProjectController);  
 router.get('/', getAllProjectsController);                                                // GET /api/projects - Tous les rôles  
 router.get('/:id', getProjectByIdController);                                            // GET /api/projects/:id - Selon permissions
 router.put('/:id', updateProjectController);                                             // PUT /api/projects/:id - Propriétaire ou Manager
-router.delete('/:id', deleteProjectController);                                          // DELETE /api/projects/:id - Propriétaire ou Manager
+router.delete('/:id', authorizeProjectDelete, deleteProjectController);                  // DELETE /api/projects/:id - Propriétaire ou Admin SEULEMENT
 
 // Routes pour la gestion des membres de projet
 router.get('/:projectId/members', getProjectMembersController);                                                     // GET /api/projects/:projectId/members
