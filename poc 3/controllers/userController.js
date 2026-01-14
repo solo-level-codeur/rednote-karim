@@ -18,12 +18,20 @@ const registerUser = async (req, res) => {
     const userId = await createUser(firstname, lastname, email, password, finalTelephone, finalDescription, finalRoleId);
     const token = generateToken(userId);
 
+    // Définir le cookie httpOnly
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // HTTPS en production
+      sameSite: 'strict',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 jours
+    });
+
     res.status(201).json({
       id: userId,
       firstname,
       lastname,
       email,
-      token,
+      role_id: finalRoleId,
     });
   } catch (error) {
     console.error('Erreur Register:', error);
@@ -47,13 +55,21 @@ const loginUser = async (req, res) => {
     const user = await findUserByEmail(email);
     if (user && (await matchPassword(password, user.password))) {
       const token = generateToken(user.user_id);
+      
+      // Définir le cookie httpOnly
+      res.cookie('authToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // HTTPS en production
+        sameSite: 'strict',
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 jours
+      });
+
       res.json({
         id: user.user_id,
         firstname: user.firstname,
         lastname: user.lastname,
         email: user.email,
         role_id: user.role_id,
-        token,
       });
     } else {
       res.status(401).json({ message: 'Email ou mot de passe incorrect' });
@@ -159,6 +175,15 @@ const deleteUserAdmin = async (req, res) => {
   }
 };
 
+// Déconnexion d'un utilisateur
+const logoutUser = (req, res) => {
+  res.clearCookie('authToken');
+  res.json({ 
+    success: true,
+    message: 'Déconnexion réussie' 
+  });
+};
+
 // Générer un token JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -228,7 +253,8 @@ const updateUserProfileController = async (req, res) => {
 
 module.exports = { 
   registerUser, 
-  loginUser, 
+  loginUser,
+  logoutUser,
   getUserProfile,
   getUsersAdmin,
   updateUserRoleAdmin,

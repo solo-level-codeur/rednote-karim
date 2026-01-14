@@ -5,9 +5,11 @@ const pool = require('../config/db');
 const protect = async (req, res, next) => {
   let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  // Lire le token depuis les cookies httpOnly
+  token = req.cookies.authToken;
+
+  if (token) {
     try {
-      token = req.headers.authorization.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
       // Récupérer les informations utilisateur avec le rôle

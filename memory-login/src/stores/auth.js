@@ -2,8 +2,8 @@ import { reactive } from 'vue'
 
 const state = reactive({
   user: null,
-  token: null,
   isAuthenticated: false
+  // token supprimé car géré côté serveur dans les cookies httpOnly
 })
 
 // Définition des rôles (doit correspondre au backend)
@@ -20,31 +20,35 @@ export const authStore = {
   
   login(userData) {
     state.user = userData
-    state.token = userData.token
     state.isAuthenticated = true
     
-    localStorage.setItem('authToken', userData.token)
+    // Plus de stockage du token - géré par httpOnly cookies
     localStorage.setItem('user', JSON.stringify(userData))
   },
   
-  logout() {
+  async logout() {
+    try {
+      // Appeler l'API pour supprimer le cookie httpOnly
+      const { authAPI } = await import('../services/api.js')
+      await authAPI.logout()
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error)
+    }
+    
     state.user = null
-    state.token = null
     state.isAuthenticated = false
     
-    localStorage.removeItem('authToken')
+    // Plus de suppression du token - géré par le serveur
     localStorage.removeItem('user')
   },
   
   initializeAuth() {
-    const token = localStorage.getItem('authToken')
     const userData = localStorage.getItem('user')
     
-    if (token && userData) {
+    if (userData) {
       try {
         const user = JSON.parse(userData)
         state.user = user
-        state.token = token
         state.isAuthenticated = true
       } catch (error) {
         console.error('Erreur lors de l\'initialisation de l\'authentification:', error)

@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const noteRoutes = require('./routes/noteRoutes');
 const userRoutes = require('./routes/userRoutes');
 const projectRoutes = require('./routes/projectRoutes');
@@ -23,8 +24,12 @@ pool.query('SELECT 1')
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:5174'], // URLs du frontend possibles
+  credentials: true // Permettre l'envoi des cookies
+}));
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 // API routes
 app.use('/api/notes', noteRoutes);

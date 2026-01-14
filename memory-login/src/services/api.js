@@ -4,29 +4,20 @@ const API_BASE_URL = 'http://localhost:3000/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // Permettre l'envoi des cookies
   headers: {
     'Content-Type': 'application/json'
   }
 })
 
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
+// Plus besoin d'intercepteur request car le token est dans les cookies httpOnly
+// L'intercepteur est supprimé car Axios envoie automatiquement les cookies avec withCredentials: true
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('authToken')
+      // Ne plus supprimer authToken car il n'est plus en localStorage
       localStorage.removeItem('user')
       window.location.href = '/login'
     }
@@ -37,6 +28,7 @@ api.interceptors.response.use(
 export const authAPI = {
   register: (userData) => api.post('/users/register', userData),
   login: (credentials) => api.post('/users/login', credentials),
+  logout: () => api.post('/users/logout'),
   getProfile: () => api.get('/users/profile'),
   updateProfile: (profileData) => api.put('/users/profile', profileData),
   getAllUsers: () => api.get('/users/admin/users')
