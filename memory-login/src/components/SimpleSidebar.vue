@@ -76,6 +76,10 @@
             <i class="fas fa-users me-2"></i>
             Utilisateurs
           </router-link>
+          <router-link to="/register" class="nav-link text-white" active-class="active">
+            <i class="fas fa-user-plus me-2"></i>
+            Ajouter utilisateur
+          </router-link>
         </li>
       </ul>
     </nav>
@@ -113,7 +117,7 @@ export default {
     },
     
     isAdmin() {
-      return this.currentUser?.role === 'Admin'
+      return authStore.isAdmin() // Utilise la méthode centralisée
     },
     
     userInitials() {

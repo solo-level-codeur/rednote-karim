@@ -1,26 +1,43 @@
 const db = require('../config/db');
 
-// Obtenir toutes les notes d'un utilisateur (compatible schema memo)
+// Obtenir toutes les notes d'un utilisateur + notes des projets où il est membre (compatible schema memo)
 const getAllNotes = async (userId) => {
-  const [rows] = await db.query(
-    'SELECT note_id, title, content, user_id, project_id, created_at, updated_at FROM notes WHERE user_id = ? ORDER BY updated_at DESC', 
-    [userId]
-  );
+  const [rows] = await db.query(`
+    SELECT DISTINCT n.note_id, n.title, n.content, n.user_id, n.project_id, n.created_at, n.updated_at,
+           CASE WHEN n.user_id = ? THEN 'owner' ELSE 'shared' END as note_role,
+           p.project_name,
+           u.firstname as author_firstname,
+           u.lastname as author_lastname
+    FROM notes n
+    LEFT JOIN projects p ON n.project_id = p.project_id
+    LEFT JOIN users u ON n.user_id = u.user_id
+    WHERE n.user_id = ?
+    OR (n.project_id IN (
+      SELECT DISTINCT p2.project_id 
+      FROM projects p2
+      LEFT JOIN project_members pm ON p2.project_id = pm.project_id
+      WHERE p2.user_id = ? OR pm.user_id = ?
+    ))
+    ORDER BY n.updated_at DESC
+  `, [userId, userId, userId, userId]);
   return rows;
 };
 
 // Obtenir toutes les notes d'un projet (compatible schema memo)
-const getAllNotesFromProject = async (projectId, userId) => {
-  // Vérifier l'accès au projet (utilisateur membre ou propriétaire)
-  const [accessCheck] = await db.query(`
-    SELECT 1 FROM projects p
-    LEFT JOIN project_members pm ON p.project_id = pm.project_id
-    WHERE p.project_id = ? AND (p.user_id = ? OR pm.user_id = ?)
-    LIMIT 1
-  `, [projectId, userId, userId]);
-  
-  if (accessCheck.length === 0) {
-    throw new Error('Accès refusé au projet');
+const getAllNotesFromProject = async (projectId, userId, isAdminAccess = false) => {
+  // Bypass pour les admins
+  if (!isAdminAccess) {
+    // Vérifier l'accès au projet (utilisateur membre ou propriétaire) 
+    const [accessCheck] = await db.query(`
+      SELECT 1 FROM projects p
+      LEFT JOIN project_members pm ON p.project_id = pm.project_id
+      WHERE p.project_id = ? AND (p.user_id = ? OR pm.user_id = ?)
+      LIMIT 1
+    `, [projectId, userId, userId]);
+    
+    if (accessCheck.length === 0) {
+      throw new Error('Accès refusé au projet');
+    }
   }
   
   // Récupérer les notes du projet avec informations auteur
@@ -41,12 +58,22 @@ const getAllNotesFromProject = async (projectId, userId) => {
 };
 
 // Obtenir une note spécifique (compatible schema memo)
-const getNoteById = async (id, userId) => {
-  const [rows] = await db.query(
-    'SELECT note_id, title, content, user_id, project_id, created_at, updated_at FROM notes WHERE note_id = ? AND user_id = ?', 
-    [id, userId]
-  );
-  return rows[0];
+const getNoteById = async (id, userId, isAdminAccess = false) => {
+  if (isAdminAccess) {
+    // Admin peut voir toutes les notes
+    const [rows] = await db.query(
+      'SELECT note_id, title, content, user_id, project_id, created_at, updated_at FROM notes WHERE note_id = ?', 
+      [id]
+    );
+    return rows[0];
+  } else {
+    // Utilisateurs normaux voient seulement leurs notes
+    const [rows] = await db.query(
+      'SELECT note_id, title, content, user_id, project_id, created_at, updated_at FROM notes WHERE note_id = ? AND user_id = ?', 
+      [id, userId]
+    );
+    return rows[0];
+  }
 };
 
 // Créer une nouvelle note (compatible schema memo)
@@ -83,12 +110,22 @@ const createNote = async (title, content, userId, projectId = null) => {
 };
 
 // Mettre à jour une note (compatible schema memo)
-const updateNote = async (id, title, content, userId, projectId = null) => {
-  const [result] = await db.query(
-    'UPDATE notes SET title = ?, content = ?, project_id = ?, updated_at = CURRENT_TIMESTAMP WHERE note_id = ? AND user_id = ?', 
-    [title, content, projectId, id, userId]
-  );
-  return result.affectedRows;
+const updateNote = async (id, title, content, userId, projectId = null, isAdminAccess = false) => {
+  if (isAdminAccess) {
+    // Admin peut modifier toutes les notes
+    const [result] = await db.query(
+      'UPDATE notes SET title = ?, content = ?, project_id = ?, updated_at = CURRENT_TIMESTAMP WHERE note_id = ?', 
+      [title, content, projectId, id]
+    );
+    return result.affectedRows;
+  } else {
+    // Utilisateurs normaux modifient seulement leurs notes
+    const [result] = await db.query(
+      'UPDATE notes SET title = ?, content = ?, project_id = ?, updated_at = CURRENT_TIMESTAMP WHERE note_id = ? AND user_id = ?', 
+      [title, content, projectId, id, userId]
+    );
+    return result.affectedRows;
+  }
 };
 
 // Supprimer une note et ses relations (compatible schema memo)

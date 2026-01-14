@@ -229,7 +229,10 @@ export default {
       return authStore.state.user?.id
     },
     isProjectOwner() {
-      return this.project && this.currentUserId && this.project.user_id === this.currentUserId
+      // Propriétaire du projet OU Manager (peut gérer tous les projets)
+      const isOwner = this.project && this.currentUserId && this.project.user_id === this.currentUserId
+      const canManage = authStore.canManageProjectMembers()
+      return isOwner || canManage
     },
     availableUsers() {
       // Filtrer les utilisateurs qui ne sont pas déjà membres

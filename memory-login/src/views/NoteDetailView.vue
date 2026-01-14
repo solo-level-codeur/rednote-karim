@@ -214,6 +214,12 @@ export default {
       return 'Auteur inconnu'
     },
     canEditNote() {
+      // Utiliser la propriété calculée côté serveur si disponible, sinon fallback sur la logique locale
+      if (this.note && this.note.canEdit !== undefined) {
+        return this.note.canEdit
+      }
+      
+      // Fallback pour la compatibilité avec l'ancienne API
       if (!this.note || !this.currentUser) return false
       
       const isOwner = this.note.user_id === this.currentUser.id

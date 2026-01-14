@@ -69,7 +69,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="user in filteredUsers" :key="user.id_users">
+                <tr v-for="user in filteredUsers" :key="user.user_id">
                   <td>
                     <div class="d-flex align-items-center">
                       <div class="avatar-circle me-3">
@@ -77,7 +77,7 @@
                       </div>
                       <div>
                         <div class="fw-semibold">{{ user.firstname }} {{ user.lastname }}</div>
-                        <small class="text-muted">ID: {{ user.id_users }}</small>
+                        <small class="text-muted">ID: {{ user.user_id }}</small>
                       </div>
                     </div>
                   </td>
@@ -100,7 +100,7 @@
                       <button
                         class="btn btn-sm btn-outline-primary"
                         @click="editUserRole(user)"
-                        :disabled="user.id_users === currentUser.id_users"
+                        :disabled="user.user_id === currentUser.id"
                         title="Modifier le rôle"
                       >
                         <i class="fas fa-user-tag"></i>
@@ -108,7 +108,7 @@
                       <button
                         class="btn btn-sm btn-outline-danger"
                         @click="confirmDeleteUser(user)"
-                        :disabled="user.id_users === currentUser.id_users"
+                        :disabled="user.user_id === currentUser.id"
                         title="Supprimer l'utilisateur"
                       >
                         <i class="fas fa-trash"></i>
@@ -223,7 +223,7 @@ export default {
         this.users = response.data.users
       } catch (error) {
         console.error('Erreur lors du chargement des utilisateurs:', error)
-        this.$toast.error('Erreur lors du chargement des utilisateurs')
+        console.error('Erreur lors du chargement des utilisateurs')
       } finally {
         this.loading = false
       }
@@ -245,13 +245,13 @@ export default {
     async updateRole() {
       this.updating = true
       try {
-        await adminAPI.updateUserRole(this.editingUser.id_users, parseInt(this.newRole))
-        this.$toast.success('Rôle mis à jour avec succès')
+        await adminAPI.updateUserRole(this.editingUser.user_id, parseInt(this.newRole))
+        console.log('Rôle mis à jour avec succès')
         this.showRoleModal = false
         await this.loadUsers() // Recharger la liste
       } catch (error) {
         console.error('Erreur lors de la mise à jour du rôle:', error)
-        this.$toast.error('Erreur lors de la mise à jour du rôle')
+        console.error('Erreur lors de la mise à jour du rôle')
       } finally {
         this.updating = false
       }
@@ -265,12 +265,12 @@ export default {
 
     async deleteUser(user) {
       try {
-        await adminAPI.deleteUser(user.id_users)
-        this.$toast.success('Utilisateur supprimé avec succès')
+        await adminAPI.deleteUser(user.user_id)
+        console.log('Utilisateur supprimé avec succès')
         await this.loadUsers() // Recharger la liste
       } catch (error) {
         console.error('Erreur lors de la suppression:', error)
-        this.$toast.error('Erreur lors de la suppression de l\'utilisateur')
+        console.error('Erreur lors de la suppression de l\'utilisateur')
       }
     },
 

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { registerUser, loginUser, getUserProfile, getUsersAdmin, updateUserRoleAdmin, deleteUserAdmin, getUserProfileWithStatsController, updateUserProfileController } = require('../controllers/userController');
 const { protect } = require('../middlewares/authMiddleware');
+const { requireAdminAccess } = require('../middlewares/permissionMiddleware');
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
@@ -12,8 +13,8 @@ router.get('/profile/stats', protect, getUserProfileWithStatsController);
 router.put('/profile', protect, updateUserProfileController);
 
 // Routes d'administration (nécessitent authentification + rôle admin)
-router.get('/admin/users', protect, getUsersAdmin);
-router.put('/admin/users/role', protect, updateUserRoleAdmin);
-router.delete('/admin/users/:userId', protect, deleteUserAdmin);
+router.get('/admin/users', protect, requireAdminAccess, getUsersAdmin);
+router.put('/admin/users/role', protect, requireAdminAccess, updateUserRoleAdmin);
+router.delete('/admin/users/:userId', protect, requireAdminAccess, deleteUserAdmin);
 
 module.exports = router;

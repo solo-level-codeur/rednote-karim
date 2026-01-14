@@ -48,13 +48,29 @@ const getAllNotesController = async (req, res) => {
 const getNoteByIdController = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id; // ID de l'utilisateur authentifié
+  const userRole = req.user.role_id;
+  const { ROLES } = require('../middlewares/permissionMiddleware');
 
   try {
-    const note = await getNoteById(id, userId);
+    // Admin peut voir toutes les notes
+    const isAdminAccess = userRole === ROLES.ADMIN;
+    const note = await getNoteById(id, userId, isAdminAccess);
     if (!note) {
       return res.status(404).json({ message: 'Note non trouvée' });
     }
-    res.json(note);
+    
+    // Ajouter les permissions calculées côté serveur
+    const isOwner = note.user_id === userId;
+    const isAdmin = userRole === ROLES.ADMIN;
+    
+    const responseNote = {
+      ...note,
+      canEdit: isOwner || isAdmin,
+      canDelete: isOwner || isAdmin,
+      isOwner: isOwner
+    };
+    
+    res.json(responseNote);
   } catch (error) {
     console.error('Erreur lors de la récupération de la note :', error);
     res.status(500).json({ message: 'Erreur du serveur' });
@@ -66,11 +82,15 @@ const updateNoteController = async (req, res) => {
   const { id } = req.params;
   const { title, content, projectId } = req.body;
   const userId = req.user.id; // ID de l'utilisateur authentifié
+  const userRole = req.user.role_id;
+  const { ROLES } = require('../middlewares/permissionMiddleware');
 
   console.log('🔧 DEBUG Update note:', { id, title, content, projectId, userId });
 
   try {
-    const success = await updateNote(id, title, content, userId, projectId);
+    // Admin peut modifier toutes les notes
+    const isAdminAccess = userRole === ROLES.ADMIN;
+    const success = await updateNote(id, title, content, userId, projectId, isAdminAccess);
     if (!success) {
       return res.status(404).json({ message: 'Note non trouvée' });
     }
@@ -157,9 +177,13 @@ const getFilteredNotesController = async (req, res) => {
 const getAllNotesFromProjectController = async (req, res) => {
   const { projectId } = req.params;
   const userId = req.user.id;
+  const userRole = req.user.role_id;
+  const { ROLES } = require('../middlewares/permissionMiddleware');
 
   try {
-    const notes = await getAllNotesFromProject(projectId, userId);
+    // Admin peut accéder à tous les projets
+    const isAdminAccess = userRole === ROLES.ADMIN;
+    const notes = await getAllNotesFromProject(projectId, userId, isAdminAccess);
     res.json({
       projectId: projectId,
       count: notes.length,

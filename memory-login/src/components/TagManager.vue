@@ -17,10 +17,6 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center">
               <div class="d-flex align-items-center">
-                <span 
-                  class="tag-color-indicator me-2"
-                  :style="{ backgroundColor: tag.color }"
-                ></span>
                 <h6 class="card-title mb-0">{{ tag.name }}</h6>
               </div>
               
@@ -38,11 +34,6 @@
                       <i class="fas fa-edit"></i> Modifier
                     </a>
                   </li>
-                  <li>
-                    <a class="dropdown-item" href="#" @click="viewNotesByTag(tag.id)">
-                      <i class="fas fa-eye"></i> Voir les notes
-                    </a>
-                  </li>
                   <li><hr class="dropdown-divider"></li>
                   <li>
                     <a class="dropdown-item text-danger" href="#" @click="deleteTag(tag.id)">
@@ -52,11 +43,6 @@
                 </ul>
               </div>
             </div>
-            
-            <small class="text-muted">
-              <i class="fas fa-calendar"></i> 
-              Créé le {{ formatDate(tag.created_at) }}
-            </small>
           </div>
         </div>
       </div>
@@ -77,12 +63,6 @@
       @cancel="handleCancelTag"
     />
 
-    <!-- Modal des notes par tag -->
-    <NotesByTagModal
-      v-if="showNotesModal"
-      :tagId="selectedTagId"
-      @close="showNotesModal = false"
-    />
 
     <!-- Loading -->
     <div v-if="loading" class="text-center py-4">
@@ -96,22 +76,18 @@
 <script>
 import { tagsAPI } from '@/services/api'
 import TagModal from './TagModal.vue'
-import NotesByTagModal from './NotesByTagModal.vue'
 
 export default {
   name: 'TagManager',
   components: {
-    TagModal,
-    NotesByTagModal
+    TagModal
   },
   data() {
     return {
       tags: [],
       loading: false,
       showCreateModal: false,
-      editingTag: null,
-      showNotesModal: false,
-      selectedTagId: null
+      editingTag: null
     }
   },
   mounted() {
@@ -133,11 +109,6 @@ export default {
 
     editTag(tag) {
       this.editingTag = { ...tag }
-    },
-
-    viewNotesByTag(tagId) {
-      this.selectedTagId = tagId
-      this.showNotesModal = true
     },
 
     async deleteTag(tagId) {
@@ -200,15 +171,6 @@ export default {
 .tag-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.tag-color-indicator {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: inline-block;
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 1px #ddd;
 }
 
 .dropdown-toggle::after {

@@ -14,7 +14,11 @@
             <button class="btn btn-primary" @click="createNewNote">
               <i class="fas fa-plus me-2"></i>Nouvelle note
             </button>
-            <button class="btn btn-outline-secondary" @click="createNewProject">
+            <button 
+              v-if="canCreateProjects" 
+              class="btn btn-outline-secondary" 
+              @click="createNewProject"
+            >
               <i class="fas fa-folder me-2"></i>Nouveau projet
             </button>
           </div>
@@ -198,6 +202,9 @@ export default {
   computed: {
     currentUser() {
       return authStore.state.user
+    },
+    canCreateProjects() {
+      return authStore.canCreateProjects()
     },
     maxActivityValue() {
       return Math.max(...this.activityData.map(d => d.notes), 5)

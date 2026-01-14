@@ -41,7 +41,7 @@ const createUserWithRole = async (firstname, lastname, email, password, telephon
 // Récupérer tous les utilisateurs (pour admin)
 const getAllUsers = async () => {
     const [rows] = await db.query(
-        'SELECT u.user_id, u.firstname, u.lastname, u.email, u.telephone, u.description, r.role_name FROM users u LEFT JOIN roles r ON u.role_id = r.role_id ORDER BY u.user_id DESC'
+        'SELECT u.user_id, u.firstname, u.lastname, u.email, u.telephone, u.description, u.created_at, r.role_name FROM users u LEFT JOIN roles r ON u.role_id = r.role_id ORDER BY u.user_id DESC'
     );
     return rows;
 };

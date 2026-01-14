@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { createNoteController, getAllNotesController, getAllNotesFromProjectController, getNoteByIdController, updateNoteController, deleteNoteController, searchNotesController, getFilteredNotesController } = require('../controllers/noteController');
 const { registerUser, loginUser, getUserProfile } = require('../controllers/userController');
-const { protect, authorizeNoteOwner } = require('../middlewares/authMiddleware');
+const { protect, authorizeNoteOwner, authorizeNoteEdit } = require('../middlewares/authMiddleware');
+const { checkPermission } = require('../middlewares/permissionMiddleware');
 
 // Routes utilisateur
 router.post('/register', registerUser);
@@ -18,10 +19,10 @@ router.get('/note/:id', protect, authorizeNoteOwner, getNoteByIdController);
 // Route pour créer une nouvelle note (protégée)
 router.post('/note', protect, createNoteController);
 
-// Route pour mettre à jour une note par ID (protégée)
-router.put('/note/:id', protect, authorizeNoteOwner, updateNoteController);
+// Route pour mettre à jour une note par ID (protégée) - Dev+ peuvent modifier leurs notes, Admin/Manager toutes
+router.put('/note/:id', protect, authorizeNoteEdit, updateNoteController);
 
-// Route pour supprimer une note par ID (protégée)
+// Route pour supprimer une note par ID (protégée) - Seuls les propriétaires peuvent supprimer
 router.delete('/note/:id', protect, authorizeNoteOwner, deleteNoteController);
 
 // Routes de recherche et filtrage

@@ -120,12 +120,12 @@ router.beforeEach((to, from, next) => {
 
   if (requiresAuth && !authStore.state.isAuthenticated) {
     next('/login')
-  } else if (requiresAdmin && authStore.state.user?.role !== 'Admin') {
+  } else if (requiresAdmin && !authStore.isAdmin()) {
     // Seuls les admins peuvent accéder aux pages admin
     next('/dashboard')
   } else if (to.name === 'login' && authStore.state.isAuthenticated) {
     next('/home')
-  } else if (to.name === 'register' && authStore.state.isAuthenticated && authStore.state.user?.role !== 'Admin') {
+  } else if (to.name === 'register' && authStore.state.isAuthenticated && !authStore.isAdmin()) {
     // Si connecté mais pas admin, rediriger
     next('/dashboard')
   } else {

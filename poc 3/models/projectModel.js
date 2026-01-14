@@ -10,26 +10,51 @@ const createProject = async (name, description, userId) => {
 };
 
 // Obtenir tous les projets d'un utilisateur (compatible schema memo)
-const getAllProjects = async (userId) => {
-  const [rows] = await db.query(`
-    SELECT DISTINCT p.project_id, p.project_name, p.description, p.start_date, p.end_date, 
-           p.user_id, p.created_at, p.updated_at,
-           CASE WHEN p.user_id = ? THEN 'owner' ELSE 'member' END as user_role
-    FROM projects p
-    LEFT JOIN project_members pm ON p.project_id = pm.project_id
-    WHERE p.user_id = ? OR pm.user_id = ?
-    ORDER BY p.project_name ASC
-  `, [userId, userId, userId]);
-  return rows;
+const getAllProjects = async (userId, isAdminAccess = false) => {
+  if (isAdminAccess) {
+    // Admin et Manager voient tous les projets
+    const [rows] = await db.query(`
+      SELECT DISTINCT p.project_id, p.project_name, p.description, p.start_date, p.end_date, 
+             p.user_id, p.created_at, p.updated_at,
+             CASE WHEN p.user_id = ? THEN 'owner' ELSE 'admin_access' END as user_role
+      FROM projects p
+      ORDER BY p.project_name ASC
+    `, [userId]);
+    return rows;
+  } else {
+    // Developer et Viewer voient seulement leurs projets invités
+    const [rows] = await db.query(`
+      SELECT DISTINCT p.project_id, p.project_name, p.description, p.start_date, p.end_date, 
+             p.user_id, p.created_at, p.updated_at,
+             CASE WHEN p.user_id = ? THEN 'owner' ELSE 'member' END as user_role
+      FROM projects p
+      LEFT JOIN project_members pm ON p.project_id = pm.project_id
+      WHERE p.user_id = ? OR pm.user_id = ?
+      ORDER BY p.project_name ASC
+    `, [userId, userId, userId]);
+    return rows;
+  }
 };
 
 // Obtenir un projet spécifique (compatible schema memo)
-const getProjectById = async (projectId, userId) => {
-  const [rows] = await db.query(
-    'SELECT * FROM projects WHERE project_id = ? AND user_id = ?', 
-    [projectId, userId]
-  );
-  return rows[0];
+const getProjectById = async (projectId, userId, isAdminAccess = false) => {
+  if (isAdminAccess) {
+    // Admin et Manager peuvent voir tous les projets
+    const [rows] = await db.query(
+      'SELECT * FROM projects WHERE project_id = ?', 
+      [projectId]
+    );
+    return rows[0];
+  } else {
+    // Developer et Viewer voient seulement leurs projets invités
+    const [rows] = await db.query(`
+      SELECT p.* FROM projects p
+      LEFT JOIN project_members pm ON p.project_id = pm.project_id
+      WHERE p.project_id = ? AND (p.user_id = ? OR pm.user_id = ?)
+      LIMIT 1
+    `, [projectId, userId, userId]);
+    return rows[0];
+  }
 };
 
 // Mettre à jour un projet (compatible schema memo)
@@ -41,13 +66,56 @@ const updateProject = async (projectId, name, description, status, userId) => {
   return result.affectedRows;
 };
 
-// Supprimer un projet (compatible schema memo)
-const deleteProject = async (projectId, userId) => {
-  const [result] = await db.query(
-    'DELETE FROM projects WHERE project_id = ? AND user_id = ?', 
-    [projectId, userId]
-  );
-  return result.affectedRows;
+// Supprimer un projet et toutes ses notes associées (compatible schema memo)
+const deleteProject = async (projectId, userId, isAdminRequest = false) => {
+  try {
+    // D'abord, supprimer toutes les notes du projet avec leurs relations
+    const [notesToDelete] = await db.query(
+      'SELECT note_id FROM notes WHERE project_id = ?',
+      [projectId]
+    );
+
+    // Pour chaque note, supprimer ses relations puis la note
+    for (const note of notesToDelete) {
+      const noteId = note.note_id;
+      
+      // Supprimer les relations de la note
+      await db.query('DELETE FROM note_tags WHERE note_id = ?', [noteId]);
+      await db.query('DELETE FROM note_shares WHERE note_id = ?', [noteId]);
+      await db.query('DELETE FROM comments WHERE note_id = ?', [noteId]);
+      await db.query('DELETE FROM note_documents WHERE note_id = ?', [noteId]);
+      
+      // Supprimer la note
+      await db.query('DELETE FROM notes WHERE note_id = ?', [noteId]);
+    }
+
+    // Supprimer les membres du projet
+    await db.query('DELETE FROM project_members WHERE project_id = ?', [projectId]);
+    
+    // Supprimer les tags du projet
+    await db.query('DELETE FROM project_tags WHERE project_id = ?', [projectId]);
+    
+    // Finalement, supprimer le projet
+    let result;
+    if (isAdminRequest) {
+      // Admin peut supprimer n'importe quel projet
+      [result] = await db.query(
+        'DELETE FROM projects WHERE project_id = ?', 
+        [projectId]
+      );
+    } else {
+      // Utilisateur normal peut seulement supprimer ses propres projets
+      [result] = await db.query(
+        'DELETE FROM projects WHERE project_id = ? AND user_id = ?', 
+        [projectId, userId]
+      );
+    }
+    
+    return result.affectedRows;
+  } catch (error) {
+    console.error('Erreur lors de la suppression du projet:', error);
+    throw error;
+  }
 };
 
 // Ajouter un membre à un projet (compatible schema memo)
@@ -68,15 +136,18 @@ const addProjectMember = async (projectId, userId, role = 'Member') => {
 };
 
 // Retirer un membre d'un projet (compatible schema memo)
-const removeProjectMember = async (projectId, userId, requesterId) => {
-  // Vérifier que le demandeur est propriétaire du projet
-  const [ownerCheck] = await db.query(
-    'SELECT 1 FROM projects WHERE project_id = ? AND user_id = ?',
-    [projectId, requesterId]
-  );
-  
-  if (ownerCheck.length === 0) {
-    throw new Error('Seul le propriétaire peut retirer des membres');
+const removeProjectMember = async (projectId, userId, requesterId, isAdminRequest = false) => {
+  // Admin peut toujours retirer des membres
+  if (!isAdminRequest) {
+    // Vérifier que le demandeur est propriétaire du projet
+    const [ownerCheck] = await db.query(
+      'SELECT 1 FROM projects WHERE project_id = ? AND user_id = ?',
+      [projectId, requesterId]
+    );
+    
+    if (ownerCheck.length === 0) {
+      throw new Error('Seul le propriétaire peut retirer des membres');
+    }
   }
 
   const [result] = await db.query(
@@ -87,17 +158,20 @@ const removeProjectMember = async (projectId, userId, requesterId) => {
 };
 
 // Obtenir tous les membres d'un projet (compatible schema memo)
-const getProjectMembers = async (projectId, userId) => {
-  // Vérifier que l'utilisateur a accès au projet
-  const [accessCheck] = await db.query(`
-    SELECT 1 FROM projects p
-    LEFT JOIN project_members pm ON p.project_id = pm.project_id
-    WHERE p.project_id = ? AND (p.user_id = ? OR pm.user_id = ?)
-    LIMIT 1
-  `, [projectId, userId, userId]);
-  
-  if (accessCheck.length === 0) {
-    throw new Error('Accès refusé au projet');
+const getProjectMembers = async (projectId, userId, isAdminAccess = false) => {
+  // Admin peut accéder à tous les projets
+  if (!isAdminAccess) {
+    // Vérifier que l'utilisateur a accès au projet
+    const [accessCheck] = await db.query(`
+      SELECT 1 FROM projects p
+      LEFT JOIN project_members pm ON p.project_id = pm.project_id
+      WHERE p.project_id = ? AND (p.user_id = ? OR pm.user_id = ?)
+      LIMIT 1
+    `, [projectId, userId, userId]);
+    
+    if (accessCheck.length === 0) {
+      throw new Error('Accès refusé au projet');
+    }
   }
 
   // Récupérer tous les membres avec leurs informations
@@ -122,15 +196,18 @@ const getProjectMembers = async (projectId, userId) => {
 };
 
 // Mettre à jour le rôle d'un membre (simplifié pour schema memo)
-const updateMemberRole = async (projectId, userId, newRole, requesterId) => {
-  // Vérifier que le demandeur est propriétaire du projet
-  const [ownerCheck] = await db.query(
-    'SELECT 1 FROM projects WHERE project_id = ? AND user_id = ?',
-    [projectId, requesterId]
-  );
-  
-  if (ownerCheck.length === 0) {
-    throw new Error('Seul le propriétaire peut modifier les rôles');
+const updateMemberRole = async (projectId, userId, newRole, requesterId, isAdminRequest = false) => {
+  // Admin peut toujours modifier les rôles
+  if (!isAdminRequest) {
+    // Vérifier que le demandeur est propriétaire du projet
+    const [ownerCheck] = await db.query(
+      'SELECT 1 FROM projects WHERE project_id = ? AND user_id = ?',
+      [projectId, requesterId]
+    );
+    
+    if (ownerCheck.length === 0) {
+      throw new Error('Seul le propriétaire peut modifier les rôles');
+    }
   }
 
   // Dans le nouveau schéma, on peut juste vérifier l'existence du membre

@@ -10,7 +10,17 @@
           <button type="button" class="btn-close" @click="$emit('cancel')"></button>
         </div>
         
-        <form @submit.prevent="handleSubmit">
+        <!-- Vérification des permissions pour créer un projet -->
+        <div v-if="!project && !canCreateProject" class="modal-body">
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Accès restreint</strong><br>
+            Seuls les Managers peuvent créer de nouveaux projets.<br>
+            Votre rôle actuel : {{ userRole }}
+          </div>
+        </div>
+
+        <form v-else @submit.prevent="handleSubmit">
           <div class="modal-body">
             <div class="mb-3">
               <label for="projectName" class="form-label">Nom du projet *</label>
@@ -170,6 +180,12 @@ export default {
       // Filtrer les utilisateurs qui ne sont pas déjà dans la liste des membres
       const memberIds = this.formData.members.map(m => m.userId)
       return this.allUsers.filter(user => !memberIds.includes(user.user_id))
+    },
+    canCreateProject() {
+      return this.$store?.authStore?.canCreateProjects() || authStore.canCreateProjects()
+    },
+    userRole() {
+      return authStore.getRoleName()
     }
   },
   async mounted() {
