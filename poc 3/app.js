@@ -28,7 +28,7 @@ app.use(bodyParser.json());
 
 // API routes
 app.use('/api/notes', noteRoutes);
-app.use('/api', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tags', tagRoutes);
 app.use('/api/share', shareRoutes);

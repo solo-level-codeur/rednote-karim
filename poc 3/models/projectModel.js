@@ -2,10 +2,14 @@ const db = require('../config/db');
 
 // Créer un nouveau projet (compatible schema memo)
 const createProject = async (name, description, userId) => {
-  const [result] = await db.query(
-    'INSERT INTO projects (project_name, description, start_date, user_id) VALUES (?, ?, CURDATE(), ?)',
-    [name, description, userId]
-  );
+  const [result] = await db.query(`
+    INSERT INTO projects (
+      project_name, 
+      description, 
+      start_date, 
+      user_id
+    ) VALUES (?, ?, CURDATE(), ?)
+  `, [name, description, userId]);
   return result.insertId;
 };
 
@@ -14,23 +18,43 @@ const getAllProjects = async (userId, isAdminAccess = false) => {
   if (isAdminAccess) {
     // Admin et Manager voient tous les projets
     const [rows] = await db.query(`
-      SELECT DISTINCT p.project_id, p.project_name, p.description, p.start_date, p.end_date, 
-             p.user_id, p.created_at, p.updated_at,
-             CASE WHEN p.user_id = ? THEN 'owner' ELSE 'admin_access' END as user_role
-      FROM projects p
-      ORDER BY p.project_name ASC
+      SELECT DISTINCT 
+        projects.project_id, 
+        projects.project_name, 
+        projects.description, 
+        projects.start_date, 
+        projects.end_date,
+        projects.user_id, 
+        projects.created_at, 
+        projects.updated_at,
+        CASE 
+          WHEN projects.user_id = ? THEN 'owner' 
+          ELSE 'admin_access' 
+        END as user_role
+      FROM projects 
+      ORDER BY projects.project_name ASC
     `, [userId]);
     return rows;
   } else {
     // Developer et Viewer voient seulement leurs projets invités
     const [rows] = await db.query(`
-      SELECT DISTINCT p.project_id, p.project_name, p.description, p.start_date, p.end_date, 
-             p.user_id, p.created_at, p.updated_at,
-             CASE WHEN p.user_id = ? THEN 'owner' ELSE 'member' END as user_role
-      FROM projects p
-      LEFT JOIN project_members pm ON p.project_id = pm.project_id
-      WHERE p.user_id = ? OR pm.user_id = ?
-      ORDER BY p.project_name ASC
+      SELECT DISTINCT 
+        projects.project_id, 
+        projects.project_name, 
+        projects.description, 
+        projects.start_date, 
+        projects.end_date,
+        projects.user_id, 
+        projects.created_at, 
+        projects.updated_at,
+        CASE 
+          WHEN projects.user_id = ? THEN 'owner' 
+          ELSE 'member' 
+        END as user_role
+      FROM projects 
+      LEFT JOIN project_members ON projects.project_id = project_members.project_id
+      WHERE projects.user_id = ? OR project_members.user_id = ?
+      ORDER BY projects.project_name ASC
     `, [userId, userId, userId]);
     return rows;
   }
@@ -40,17 +64,36 @@ const getAllProjects = async (userId, isAdminAccess = false) => {
 const getProjectById = async (projectId, userId, isAdminAccess = false) => {
   if (isAdminAccess) {
     // Admin et Manager peuvent voir tous les projets
-    const [rows] = await db.query(
-      'SELECT * FROM projects WHERE project_id = ?', 
-      [projectId]
-    );
+    const [rows] = await db.query(`
+      SELECT 
+        project_id,
+        project_name,
+        description,
+        start_date,
+        end_date,
+        user_id,
+        created_at,
+        updated_at
+      FROM projects 
+      WHERE project_id = ?
+    `, [projectId]);
     return rows[0];
   } else {
     // Developer et Viewer voient seulement leurs projets invités
     const [rows] = await db.query(`
-      SELECT p.* FROM projects p
-      LEFT JOIN project_members pm ON p.project_id = pm.project_id
-      WHERE p.project_id = ? AND (p.user_id = ? OR pm.user_id = ?)
+      SELECT 
+        projects.project_id,
+        projects.project_name,
+        projects.description,
+        projects.start_date,
+        projects.end_date,
+        projects.user_id,
+        projects.created_at,
+        projects.updated_at
+      FROM projects 
+      LEFT JOIN project_members ON projects.project_id = project_members.project_id
+      WHERE projects.project_id = ? 
+        AND (projects.user_id = ? OR project_members.user_id = ?)
       LIMIT 1
     `, [projectId, userId, userId]);
     return rows[0];
@@ -59,10 +102,14 @@ const getProjectById = async (projectId, userId, isAdminAccess = false) => {
 
 // Mettre à jour un projet (compatible schema memo)
 const updateProject = async (projectId, name, description, status, userId) => {
-  const [result] = await db.query(
-    'UPDATE projects SET project_name = ?, description = ?, updated_at = CURRENT_TIMESTAMP WHERE project_id = ? AND user_id = ?',
-    [name, description, projectId, userId]
-  );
+  const [result] = await db.query(`
+    UPDATE projects 
+    SET 
+      project_name = ?, 
+      description = ?, 
+      updated_at = CURRENT_TIMESTAMP 
+    WHERE project_id = ? AND user_id = ?
+  `, [name, description, projectId, userId]);
   return result.affectedRows;
 };
 

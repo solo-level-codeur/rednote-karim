@@ -1,5 +1,5 @@
 const db = require('../config/db');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 
 const createUser = async (firstname, lastname, email, password, telephone, description, roleId = 1) => {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -28,15 +28,6 @@ const matchPassword = async (enteredPassword, hashedPassword) => {
     return await bcrypt.compare(enteredPassword, hashedPassword);
 };
 
-// Créer un utilisateur avec rôle spécifique (pour l'admin)
-const createUserWithRole = async (firstname, lastname, email, password, telephone, description, roleId) => {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const [result] = await db.query(
-        'INSERT INTO users (firstname, lastname, email, password, telephone, description, role_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [firstname, lastname, email, hashedPassword, telephone, description, roleId]
-    );
-    return result.insertId;
-};
 
 // Récupérer tous les utilisateurs (pour admin)
 const getAllUsers = async () => {
@@ -76,14 +67,19 @@ const updateUserProfile = async (userId, profileData) => {
 const getUserProfileWithStats = async (userId) => {
     try {
         // Profil utilisateur avec rôle
-        const [userRows] = await db.query(
-            `SELECT u.user_id, u.firstname, u.lastname, u.email, u.telephone, u.description, 
-                    r.role_name as role
-             FROM users u 
-             LEFT JOIN roles r ON u.role_id = r.role_id 
-             WHERE u.user_id = ?`,
-            [userId]
-        );
+        const [userRows] = await db.query(`
+            SELECT 
+                users.user_id, 
+                users.firstname, 
+                users.lastname, 
+                users.email, 
+                users.telephone, 
+                users.description,
+                roles.role_name as role
+            FROM users 
+            LEFT JOIN roles ON users.role_id = roles.role_id 
+            WHERE users.user_id = ?
+        `, [userId]);
         
         if (userRows.length === 0) return null;
         
@@ -130,9 +126,10 @@ const getUserProfileWithStats = async (userId) => {
 // Vérifier si un utilisateur a un rôle spécifique
 const hasRole = async (userId, roleName) => {
     const [rows] = await db.query(`
-        SELECT 1 FROM users u
-        INNER JOIN roles r ON u.role_id = r.role_id  
-        WHERE u.user_id = ? AND r.role_name = ?
+        SELECT 1 
+        FROM users 
+        INNER JOIN roles ON users.role_id = roles.role_id  
+        WHERE users.user_id = ? AND roles.role_name = ?
     `, [userId, roleName]);
     return rows.length > 0;
 };
@@ -140,9 +137,10 @@ const hasRole = async (userId, roleName) => {
 // Récupérer le rôle d'un utilisateur
 const getUserRole = async (userId) => {
     const [rows] = await db.query(`
-        SELECT r.role_name FROM users u
-        INNER JOIN roles r ON u.role_id = r.role_id
-        WHERE u.user_id = ?
+        SELECT roles.role_name 
+        FROM users 
+        INNER JOIN roles ON users.role_id = roles.role_id
+        WHERE users.user_id = ?
     `, [userId]);
     return rows[0]?.role_name;
 };
@@ -208,11 +206,13 @@ const removeUserSkill = async (userId, skillId) => {
 // Récupérer les compétences d'un utilisateur
 const getUserSkills = async (userId) => {
     const [rows] = await db.query(`
-        SELECT s.skill_id, s.skill_name 
-        FROM user_skills us
-        INNER JOIN skills s ON us.skill_id = s.skill_id
-        WHERE us.user_id = ?
-        ORDER BY s.skill_name ASC
+        SELECT 
+            skills.skill_id, 
+            skills.skill_name 
+        FROM user_skills 
+        INNER JOIN skills ON user_skills.skill_id = skills.skill_id
+        WHERE user_skills.user_id = ?
+        ORDER BY skills.skill_name ASC
     `, [userId]);
     return rows;
 };
@@ -223,7 +223,6 @@ module.exports = {
     findUserByEmail, 
     matchPassword, 
     getUserById, 
-    createUserWithRole,
     getAllUsers,
     updateUserRole,
     deleteUser,

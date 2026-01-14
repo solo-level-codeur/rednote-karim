@@ -3,22 +3,29 @@ const db = require('../config/db');
 // Obtenir toutes les notes d'un utilisateur + notes des projets où il est membre (compatible schema memo)
 const getAllNotes = async (userId) => {
   const [rows] = await db.query(`
-    SELECT DISTINCT n.note_id, n.title, n.content, n.user_id, n.project_id, n.created_at, n.updated_at,
-           CASE WHEN n.user_id = ? THEN 'owner' ELSE 'shared' END as note_role,
-           p.project_name,
-           u.firstname as author_firstname,
-           u.lastname as author_lastname
-    FROM notes n
-    LEFT JOIN projects p ON n.project_id = p.project_id
-    LEFT JOIN users u ON n.user_id = u.user_id
-    WHERE n.user_id = ?
-    OR (n.project_id IN (
-      SELECT DISTINCT p2.project_id 
-      FROM projects p2
-      LEFT JOIN project_members pm ON p2.project_id = pm.project_id
-      WHERE p2.user_id = ? OR pm.user_id = ?
+    SELECT DISTINCT 
+      notes.note_id, 
+      notes.title, 
+      notes.content, 
+      notes.user_id, 
+      notes.project_id, 
+      notes.created_at, 
+      notes.updated_at,
+      CASE WHEN notes.user_id = ? THEN 'owner' ELSE 'shared' END as note_role,
+      projects.project_name,
+      users.firstname as author_firstname,
+      users.lastname as author_lastname
+    FROM notes 
+    LEFT JOIN projects ON notes.project_id = projects.project_id
+    LEFT JOIN users ON notes.user_id = users.user_id
+    WHERE notes.user_id = ?
+    OR (notes.project_id IN (
+      SELECT DISTINCT projects_sub.project_id 
+      FROM projects projects_sub
+      LEFT JOIN project_members ON projects_sub.project_id = project_members.project_id
+      WHERE projects_sub.user_id = ? OR project_members.user_id = ?
     ))
-    ORDER BY n.updated_at DESC
+    ORDER BY notes.updated_at DESC
   `, [userId, userId, userId, userId]);
   return rows;
 };
@@ -29,9 +36,9 @@ const getAllNotesFromProject = async (projectId, userId, isAdminAccess = false) 
   if (!isAdminAccess) {
     // Vérifier l'accès au projet (utilisateur membre ou propriétaire) 
     const [accessCheck] = await db.query(`
-      SELECT 1 FROM projects p
-      LEFT JOIN project_members pm ON p.project_id = pm.project_id
-      WHERE p.project_id = ? AND (p.user_id = ? OR pm.user_id = ?)
+      SELECT 1 FROM projects 
+      LEFT JOIN project_members ON projects.project_id = project_members.project_id
+      WHERE projects.project_id = ? AND (projects.user_id = ? OR project_members.user_id = ?)
       LIMIT 1
     `, [projectId, userId, userId]);
     
@@ -42,16 +49,23 @@ const getAllNotesFromProject = async (projectId, userId, isAdminAccess = false) 
   
   // Récupérer les notes du projet avec informations auteur
   const [rows] = await db.query(`
-    SELECT n.note_id, n.title, n.content, n.user_id, n.project_id, n.created_at, n.updated_at,
-           u.firstname as author_firstname,
-           u.lastname as author_lastname,
-           p.project_name,
-           CASE WHEN n.user_id = ? THEN 'owner' ELSE 'member' END as note_role
-    FROM notes n
-    INNER JOIN users u ON n.user_id = u.user_id
-    INNER JOIN projects p ON n.project_id = p.project_id
-    WHERE n.project_id = ?
-    ORDER BY n.updated_at DESC
+    SELECT 
+      notes.note_id, 
+      notes.title, 
+      notes.content, 
+      notes.user_id, 
+      notes.project_id, 
+      notes.created_at, 
+      notes.updated_at,
+      users.firstname as author_firstname,
+      users.lastname as author_lastname,
+      projects.project_name,
+      CASE WHEN notes.user_id = ? THEN 'owner' ELSE 'member' END as note_role
+    FROM notes 
+    INNER JOIN users ON notes.user_id = users.user_id
+    INNER JOIN projects ON notes.project_id = projects.project_id
+    WHERE notes.project_id = ?
+    ORDER BY notes.updated_at DESC
   `, [userId, projectId]);
   
   return rows;
@@ -158,22 +172,29 @@ const deleteNote = async (id, userId) => {
 // Rechercher des notes (compatible schema memo)
 const searchNotes = async (userId, searchTerm, projectId = null) => {
   let query = `
-    SELECT n.note_id, n.title, n.content, n.user_id, n.project_id, n.created_at, n.updated_at,
-           p.project_name 
-    FROM notes n 
-    LEFT JOIN projects p ON n.project_id = p.project_id 
-    WHERE n.user_id = ? 
-    AND (n.title LIKE ? OR n.content LIKE ?)
+    SELECT 
+      notes.note_id, 
+      notes.title, 
+      notes.content, 
+      notes.user_id, 
+      notes.project_id, 
+      notes.created_at, 
+      notes.updated_at,
+      projects.project_name 
+    FROM notes 
+    LEFT JOIN projects ON notes.project_id = projects.project_id 
+    WHERE notes.user_id = ? 
+    AND (notes.title LIKE ? OR notes.content LIKE ?)
   `;
   let params = [userId, `%${searchTerm}%`, `%${searchTerm}%`];
 
   // Filtrer par projet
   if (projectId) {
-    query += ' AND n.project_id = ?';
+    query += ' AND notes.project_id = ?';
     params.push(projectId);
   }
 
-  query += ' ORDER BY n.updated_at DESC';
+  query += ' ORDER BY notes.updated_at DESC';
 
   const [rows] = await db.query(query, params);
   return rows;
@@ -182,35 +203,42 @@ const searchNotes = async (userId, searchTerm, projectId = null) => {
 // Obtenir notes avec filtres avancés (compatible schema memo)
 const getNotesWithFilters = async (userId, filters = {}) => {
   let query = `
-    SELECT n.note_id, n.title, n.content, n.user_id, n.project_id, n.created_at, n.updated_at,
-           p.project_name 
-    FROM notes n 
-    LEFT JOIN projects p ON n.project_id = p.project_id 
-    WHERE n.user_id = ?
+    SELECT 
+      notes.note_id, 
+      notes.title, 
+      notes.content, 
+      notes.user_id, 
+      notes.project_id, 
+      notes.created_at, 
+      notes.updated_at,
+      projects.project_name 
+    FROM notes 
+    LEFT JOIN projects ON notes.project_id = projects.project_id 
+    WHERE notes.user_id = ?
   `;
   let params = [userId];
 
   // Filtre par projet
   if (filters.projectId) {
-    query += ' AND n.project_id = ?';
+    query += ' AND notes.project_id = ?';
     params.push(filters.projectId);
   }
 
   // Filtre par date
   if (filters.dateFrom) {
-    query += ' AND n.created_at >= ?';
+    query += ' AND notes.created_at >= ?';
     params.push(filters.dateFrom);
   }
 
   if (filters.dateTo) {
-    query += ' AND n.created_at <= ?';
+    query += ' AND notes.created_at <= ?';
     params.push(filters.dateTo);
   }
 
   // Tri
   const sortBy = filters.sortBy || 'updated_at';
   const sortOrder = filters.sortOrder || 'DESC';
-  query += ` ORDER BY n.${sortBy} ${sortOrder}`;
+  query += ` ORDER BY notes.${sortBy} ${sortOrder}`;
 
   // Limite
   if (filters.limit) {

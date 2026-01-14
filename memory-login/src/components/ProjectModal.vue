@@ -66,7 +66,7 @@
                 
                 <!-- Ajouter un membre -->
                 <div class="row mb-2">
-                  <div class="col-md-5">
+                  <div class="col-md-9">
                     <select 
                       class="form-select form-select-sm" 
                       v-model="newMember.userId"
@@ -85,14 +85,6 @@
                       <i class="spinner-border spinner-border-sm me-1"></i>
                       Chargement...
                     </div>
-                  </div>
-                  <div class="col-md-4">
-                    <select class="form-select form-select-sm" v-model="newMember.role">
-                      <option value="Member">Membre</option>
-                      <option value="Admin">Administrateur</option>
-                      <option value="Viewer">Lecteur</option>
-                      <option value="Editor">Éditeur</option>
-                    </select>
                   </div>
                   <div class="col-md-3">
                     <button 
@@ -115,7 +107,7 @@
                       :key="index"
                       class="badge bg-primary d-flex align-items-center"
                     >
-                      {{ getUserDisplayName(member.userId) }} ({{ member.role }})
+                      {{ getUserDisplayName(member.userId) }}
                       <button 
                         type="button" 
                         class="btn-close btn-close-white ms-2"
@@ -150,6 +142,7 @@
 
 <script>
 import { authAPI } from '../services/api'
+import { authStore } from '../stores/auth'
 
 export default {
   name: 'ProjectModal',
@@ -168,8 +161,7 @@ export default {
         members: []
       },
       newMember: {
-        userId: '',
-        role: 'Member'
+        userId: ''
       },
       allUsers: [],
       loadingUsers: false
@@ -182,7 +174,7 @@ export default {
       return this.allUsers.filter(user => !memberIds.includes(user.user_id))
     },
     canCreateProject() {
-      return this.$store?.authStore?.canCreateProjects() || authStore.canCreateProjects()
+      return authStore.canCreateProjects()
     },
     userRole() {
       return authStore.getRoleName()
@@ -238,12 +230,11 @@ export default {
       }
 
       this.formData.members.push({
-        userId: parseInt(this.newMember.userId),
-        role: this.newMember.role
+        userId: parseInt(this.newMember.userId)
       })
 
       // Réinitialiser le formulaire
-      this.newMember = { userId: '', role: 'Member' }
+      this.newMember = { userId: '' }
     },
 
     removeMemberFromList(index) {

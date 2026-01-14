@@ -46,7 +46,6 @@ const authorizeNoteOwner = async (req, res, next) => {
   const { ROLES } = require('./permissionMiddleware');
 
   try {
-    console.log(`DEBUG authorizeNoteOwner - User: ${req.user.email}, Role: ${userRole}, Note ID: ${noteId}`);
     
     const [rows] = await pool.query(
       'SELECT user_id, project_id FROM notes WHERE note_id = ?', 
@@ -54,7 +53,6 @@ const authorizeNoteOwner = async (req, res, next) => {
     );
     
     if (rows.length === 0) {
-      console.log(`DEBUG - Note ${noteId} not found in database`);
       return res.status(404).json({ message: 'Note non trouvée' });
     }
 
@@ -99,12 +97,9 @@ const authorizeNoteEdit = async (req, res, next) => {
   const { ROLES } = require('./permissionMiddleware');
 
   try {
-    // DEBUG: Log des informations utilisateur
-    console.log(`DEBUG authorizeNoteEdit - User: ${req.user.email}, Role: ${userRole}, Note ID: ${noteId}`);
     
     // Viewer ne peut jamais modifier
     if (userRole === ROLES.VIEWER) {
-      console.log('DEBUG - Access denied: VIEWER role');
       return res.status(403).json({ 
         message: 'Accès refusé, les Viewers ne peuvent pas modifier les notes' 
       });
@@ -124,7 +119,6 @@ const authorizeNoteEdit = async (req, res, next) => {
 
     // 1. Admin peut toujours modifier
     if (userRole === ROLES.ADMIN) {
-      console.log('DEBUG - Admin access granted for note edit');
       return next();
     }
 

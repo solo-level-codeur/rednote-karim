@@ -17,7 +17,7 @@
               Ajouter un membre
             </h6>
             <div class="row">
-              <div class="col-md-4">
+              <div class="col-md-8">
                 <label class="form-label">Utilisateur</label>
                 <select 
                   class="form-select" 
@@ -37,15 +37,6 @@
                   <i class="spinner-border spinner-border-sm me-1"></i>
                   Chargement des utilisateurs...
                 </div>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label">Rôle</label>
-                <select class="form-select" v-model="newMember.role">
-                  <option value="Member">Membre</option>
-                  <option value="Admin">Administrateur</option>
-                  <option value="Viewer">Lecteur</option>
-                  <option value="Editor">Éditeur</option>
-                </select>
               </div>
               <div class="col-md-4 d-flex align-items-end">
                 <button 
@@ -107,7 +98,7 @@
                         class="badge"
                         :class="getRoleBadgeClass(member.role)"
                       >
-                        {{ member.role || 'Member' }}
+                        Membre
                       </span>
                     </td>
                     <td>
@@ -218,7 +209,7 @@ export default {
       allUsers: [],
       newMember: {
         userId: '',
-        role: 'Member'
+        // Plus de rôle
       },
       editingMember: null,
       editingRole: ''
@@ -289,14 +280,14 @@ export default {
       try {
         await projectsAPI.addProjectMember(this.project.project_id, {
           userId: parseInt(this.newMember.userId),
-          role: this.newMember.role
+          // Plus de rôle nécessaire
         })
 
         // Recharger la liste
         await this.loadMembers()
         
         // Réinitialiser le formulaire
-        this.newMember = { userId: '', role: 'Member' }
+        this.newMember = { userId: '' }
         
         this.$emit('members-updated')
         console.log('Membre ajouté avec succès')
@@ -310,7 +301,7 @@ export default {
 
     editMember(member) {
       this.editingMember = member
-      this.editingRole = member.role || 'Member'
+      // Plus d'édition de rôle
       
       // Fermer le modal principal et ouvrir le modal d'édition
       const mainModal = bootstrap.Modal.getInstance(document.getElementById('projectMembersModal'))

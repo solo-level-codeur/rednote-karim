@@ -3,16 +3,11 @@ const jwt = require('jsonwebtoken');
 
 // Inscription d'un nouvel utilisateur
 const registerUser = async (req, res) => {
-  const { firstname, lastname, email, password, telephone, description, role_id, roleId } = req.body;
-  // Utiliser role_id si fourni, sinon roleId, sinon par défaut 3 (Developer)
-  const finalRoleId = role_id || roleId || 3;
-  
-  // Gérer les valeurs par défaut pour les champs optionnels
+  const { firstname, lastname, email, password, telephone, description, roleId } = req.body;
+  const finalRoleId = roleId || 3;
   const finalTelephone = telephone || '';
   const finalDescription = description || '';
 
-  console.log('🔍 DEBUG Register - Body reçu:', req.body);
-  console.log('📝 DEBUG Register - Paramètres:', { firstname, lastname, email, finalTelephone, finalDescription, finalRoleId });
 
   try {
     const userExists = await findUserByEmail(email);
@@ -31,8 +26,16 @@ const registerUser = async (req, res) => {
       token,
     });
   } catch (error) {
-    console.error('❌ ERROR Register:', error);
-    res.status(500).json({ message: 'Erreur du serveur', error: error.message });
+    console.error('Erreur Register:', error);
+    
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ message: 'Cet email est déjà utilisé' });
+    }
+    
+    res.status(500).json({ 
+      message: 'Erreur lors de l\'inscription',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };
 
@@ -56,7 +59,11 @@ const loginUser = async (req, res) => {
       res.status(401).json({ message: 'Email ou mot de passe incorrect' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Erreur du serveur' });
+    console.error('Erreur Login:', error);
+    res.status(500).json({ 
+      message: 'Erreur lors de la connexion',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };
 
@@ -76,8 +83,11 @@ const getUserProfile = async (req, res) => {
       description: user.description
     });
   } catch (error) {
-    console.error('Erreur lors de la récupération du profil utilisateur:', error);
-    res.status(500).json({ message: 'Erreur du serveur' });
+    console.error('Erreur getUserProfile:', error);
+    res.status(500).json({ 
+      message: 'Erreur lors de la récupération du profil',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };
 
@@ -90,8 +100,11 @@ const getUsersAdmin = async (req, res) => {
       users: users
     });
   } catch (error) {
-    console.error('Erreur lors de la récupération des utilisateurs:', error);
-    res.status(500).json({ message: 'Erreur du serveur' });
+    console.error('Erreur getUsersAdmin:', error);
+    res.status(500).json({ 
+      message: 'Erreur lors de la récupération des utilisateurs',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };
 
@@ -110,8 +123,11 @@ const updateUserRoleAdmin = async (req, res) => {
       res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du rôle:', error);
-    res.status(500).json({ message: 'Erreur du serveur' });
+    console.error('Erreur updateUserRole:', error);
+    res.status(500).json({ 
+      message: 'Erreur lors de la mise à jour du rôle',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };
 
@@ -135,8 +151,11 @@ const deleteUserAdmin = async (req, res) => {
       res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
   } catch (error) {
-    console.error('Erreur lors de la suppression de l\'utilisateur:', error);
-    res.status(500).json({ message: 'Erreur du serveur' });
+    console.error('Erreur deleteUser:', error);
+    res.status(500).json({ 
+      message: 'Erreur lors de la suppression',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };
 
@@ -156,8 +175,11 @@ const getUserProfileWithStatsController = async (req, res) => {
     }
     res.json(userProfile);
   } catch (error) {
-    console.error('Erreur lors de la récupération du profil avec stats:', error);
-    res.status(500).json({ message: 'Erreur du serveur' });
+    console.error('Erreur getUserProfileWithStats:', error);
+    res.status(500).json({ 
+      message: 'Erreur lors de la récupération du profil complet',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };
 
@@ -196,8 +218,11 @@ const updateUserProfileController = async (req, res) => {
       res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du profil:', error);
-    res.status(500).json({ message: 'Erreur du serveur' });
+    console.error('Erreur updateUserProfile:', error);
+    res.status(500).json({ 
+      message: 'Erreur lors de la mise à jour du profil',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };
 

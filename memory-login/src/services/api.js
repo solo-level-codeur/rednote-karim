@@ -35,11 +35,11 @@ api.interceptors.response.use(
 )
 
 export const authAPI = {
-  register: (userData) => api.post('/register', userData),
-  login: (credentials) => api.post('/login', credentials),
-  getProfile: () => api.get('/profile'),
-  updateProfile: (profileData) => api.put('/profile', profileData),
-  getAllUsers: () => api.get('/admin/users')
+  register: (userData) => api.post('/users/register', userData),
+  login: (credentials) => api.post('/users/login', credentials),
+  getProfile: () => api.get('/users/profile'),
+  updateProfile: (profileData) => api.put('/users/profile', profileData),
+  getAllUsers: () => api.get('/users/admin/users')
 }
 
 export const notesAPI = {
@@ -106,16 +106,16 @@ export const commentsAPI = {
 }
 
 export const profileAPI = {
-  getUserProfile: () => api.get('/profile'),
-  getUserProfileWithStats: () => api.get('/profile/stats'),
-  updateUserProfile: (profileData) => api.put('/profile', profileData)
+  getUserProfile: () => api.get('/users/profile'),
+  getUserProfileWithStats: () => api.get('/users/profile/stats'),
+  updateUserProfile: (profileData) => api.put('/users/profile', profileData)
 }
 
 // API pour l'administration des utilisateurs
 export const adminAPI = {
-  getAllUsers: () => api.get('/admin/users'),
-  updateUserRole: (userId, roleId) => api.put('/admin/users/role', { userId, roleId }),
-  deleteUser: (userId) => api.delete(`/admin/users/${userId}`)
+  getAllUsers: () => api.get('/users/admin/users'),
+  updateUserRole: (userId, roleId) => api.put('/users/admin/users/role', { userId, roleId }),
+  deleteUser: (userId) => api.delete(`/users/admin/users/${userId}`)
 }
 
 export default api
