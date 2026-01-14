@@ -6,9 +6,13 @@ const registerUser = async (req, res) => {
   const { firstname, lastname, email, password, telephone, description, role_id, roleId } = req.body;
   // Utiliser role_id si fourni, sinon roleId, sinon par défaut 3 (Developer)
   const finalRoleId = role_id || roleId || 3;
+  
+  // Gérer les valeurs par défaut pour les champs optionnels
+  const finalTelephone = telephone || '';
+  const finalDescription = description || '';
 
   console.log('🔍 DEBUG Register - Body reçu:', req.body);
-  console.log('📝 DEBUG Register - Paramètres:', { firstname, lastname, email, telephone, description, finalRoleId });
+  console.log('📝 DEBUG Register - Paramètres:', { firstname, lastname, email, finalTelephone, finalDescription, finalRoleId });
 
   try {
     const userExists = await findUserByEmail(email);
@@ -16,7 +20,7 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Utilisateur déjà existant' });
     }
 
-    const userId = await createUser(firstname, lastname, email, password, telephone, description, finalRoleId);
+    const userId = await createUser(firstname, lastname, email, password, finalTelephone, finalDescription, finalRoleId);
     const token = generateToken(userId);
 
     res.status(201).json({

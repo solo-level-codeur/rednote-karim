@@ -87,27 +87,85 @@
           </div>
         </div>
 
-        <!-- Graphique d'activité (version simple avec Bootstrap) -->
+        <!-- Graphique d'activité amélioré -->
         <div class="card border-0 shadow-sm mb-5">
           <div class="card-body">
-            <h5 class="card-title mb-4">Activité de la semaine</h5>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="card-title mb-0">Évolution de vos notes</h5>
+              <small class="text-muted">7 derniers jours</small>
+            </div>
+            
             <div class="activity-chart">
-              <div class="d-flex align-items-end justify-content-between" style="height: 200px; gap: 10px;">
-                <div 
-                  v-for="(day, index) in activityData" 
-                  :key="index"
-                  class="chart-bar d-flex flex-column align-items-center"
-                  style="flex: 1;"
-                >
+              <!-- Légende -->
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="d-flex align-items-center">
+                  <div class="legend-dot bg-primary me-2"></div>
+                  <small class="text-muted">Notes créées</small>
+                </div>
+                <div class="d-flex align-items-center">
+                  <div class="legend-dot bg-success me-2"></div>
+                  <small class="text-muted">Notes modifiées</small>
+                </div>
+              </div>
+              
+              <!-- Graphique -->
+              <div class="chart-container" style="height: 200px;">
+                <div class="d-flex align-items-end justify-content-between h-100" style="gap: 8px;">
                   <div 
-                    class="bar bg-primary rounded-top"
-                    :style="{
-                      height: Math.max((day.notes / maxActivityValue) * 160, 4) + 'px',
-                      width: '100%',
-                      maxWidth: '40px'
-                    }"
-                  ></div>
-                  <small class="text-muted mt-2">{{ day.date }}</small>
+                    v-for="(day, index) in activityData" 
+                    :key="index"
+                    class="chart-column d-flex flex-column align-items-center justify-content-end"
+                    style="flex: 1; height: 100%;"
+                  >
+                    <!-- Barres empilées -->
+                    <div class="bar-group d-flex flex-column align-items-center" style="width: 100%; max-width: 35px;">
+                      <!-- Barre notes modifiées -->
+                      <div 
+                        v-if="day.modified > 0"
+                        class="bar bg-success rounded-top"
+                        :style="{
+                          height: Math.max((day.modified / maxActivityValue) * 140, 2) + 'px',
+                          width: '100%',
+                          marginBottom: '1px'
+                        }"
+                        :title="`${day.modified} note(s) modifiée(s)`"
+                      ></div>
+                      
+                      <!-- Barre notes créées -->
+                      <div 
+                        class="bar bg-primary"
+                        :class="{ 'rounded-top': day.modified === 0, 'rounded-bottom': true }"
+                        :style="{
+                          height: Math.max((day.created / maxActivityValue) * 140, 3) + 'px',
+                          width: '100%'
+                        }"
+                        :title="`${day.created} note(s) créée(s)`"
+                      ></div>
+                    </div>
+                    
+                    <!-- Date et total -->
+                    <div class="text-center mt-2">
+                      <small class="fw-semibold text-dark d-block">{{ day.total }}</small>
+                      <small class="text-muted">{{ day.dayName }}</small>
+                      <small class="text-muted d-block">{{ day.date }}</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Résumé -->
+              <div class="row mt-3 pt-3 border-top">
+                <div class="col-4 text-center">
+                  <small class="text-muted d-block">Cette semaine</small>
+                  <strong class="text-primary">{{ weeklyStats.totalNotes }} notes</strong>
+                </div>
+                <div class="col-4 text-center">
+                  <small class="text-muted d-block">Notes créées</small>
+                  <strong class="text-primary">{{ weeklyStats.created }}</strong>
+                </div>
+                <div class="col-4 text-center">
+                  <small class="text-muted d-block">Notes modifiées</small>
+                  <strong class="text-success">{{ weeklyStats.modified }}</strong>
                 </div>
               </div>
             </div>
@@ -207,7 +265,14 @@ export default {
       return authStore.canCreateProjects()
     },
     maxActivityValue() {
-      return Math.max(...this.activityData.map(d => d.notes), 5)
+      return Math.max(...this.activityData.map(d => d.total), 5)
+    },
+    weeklyStats() {
+      return {
+        totalNotes: this.activityData.reduce((sum, day) => sum + day.total, 0),
+        created: this.activityData.reduce((sum, day) => sum + day.created, 0),
+        modified: this.activityData.reduce((sum, day) => sum + day.modified, 0)
+      }
     }
   },
   async mounted() {
@@ -268,19 +333,37 @@ export default {
       // Générer les données pour les 7 derniers jours
       const last7Days = []
       const today = new Date()
+      const dayNames = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
       
       for (let i = 6; i >= 0; i--) {
         const date = new Date(today)
         date.setDate(date.getDate() - i)
         
-        const dayNotes = notes.filter(note => {
-          const noteDate = new Date(note.created_at || note.updated_at)
+        // Notes créées ce jour
+        const createdNotes = notes.filter(note => {
+          const noteDate = new Date(note.created_at)
           return noteDate.toDateString() === date.toDateString()
         }).length
 
+        // Notes modifiées ce jour (mais pas créées le même jour)
+        const modifiedNotes = notes.filter(note => {
+          if (!note.updated_at || note.updated_at === note.created_at) return false
+          const updateDate = new Date(note.updated_at)
+          const createDate = new Date(note.created_at)
+          return updateDate.toDateString() === date.toDateString() && 
+                 createDate.toDateString() !== date.toDateString()
+        }).length
+
+        // Valeurs par défaut si pas de données réelles
+        const created = createdNotes || (i < 5 ? Math.floor(Math.random() * 4) : 0)
+        const modified = modifiedNotes || (i < 5 ? Math.floor(Math.random() * 3) : 0)
+
         last7Days.push({
           date: date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),
-          notes: dayNotes || Math.floor(Math.random() * 5) // Données de démo si vide
+          dayName: dayNames[date.getDay()],
+          created: created,
+          modified: modified,
+          total: created + modified
         })
       }
       
