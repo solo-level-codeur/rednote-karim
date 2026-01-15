@@ -12,24 +12,16 @@ const protect = async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      // Récupérer les informations utilisateur avec le rôle
-      const [rows] = await pool.query(
-        'SELECT user_id, firstname, lastname, email, role_id FROM users WHERE user_id = ?',
-        [decoded.id]
-      );
-      
-      if (rows.length === 0) {
-        return res.status(401).json({ message: 'Utilisateur non trouvé' });
+      // Vérifier que le token contient role_id (requis)
+      if (!decoded.role_id) {
+        return res.status(401).json({ message: 'Token invalide, reconnectez-vous' });
       }
       
+      console.log(`🚀 JWT OPTIMIZED - User ${decoded.id} (role ${decoded.role_id})`);
       req.user = {
-        id: rows[0].user_id,
-        firstname: rows[0].firstname,
-        lastname: rows[0].lastname,
-        email: rows[0].email,
-        role_id: rows[0].role_id
+        id: decoded.id,
+        role_id: decoded.role_id
       };
-      
       next();
     } catch (error) {
       console.error('Erreur d\'authentification:', error);

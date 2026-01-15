@@ -16,7 +16,7 @@ const registerUser = async (req, res) => {
     }
 
     const userId = await createUser(firstname, lastname, email, password, finalTelephone, finalDescription, finalRoleId);
-    const token = generateToken(userId);
+    const token = generateToken(userId, finalRoleId);
 
     // Définir le cookie httpOnly
     res.cookie('authToken', token, {
@@ -54,7 +54,7 @@ const loginUser = async (req, res) => {
   try {
     const user = await findUserByEmail(email);
     if (user && (await matchPassword(password, user.password))) {
-      const token = generateToken(user.user_id);
+      const token = generateToken(user.user_id, user.role_id);
       
       // Définir le cookie httpOnly
       res.cookie('authToken', token, {
@@ -184,9 +184,9 @@ const logoutUser = (req, res) => {
   });
 };
 
-// Générer un token JWT
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+// Générer un token JWT avec role_id pour optimiser les performances
+const generateToken = (id, role_id) => {
+  return jwt.sign({ id, role_id }, process.env.JWT_SECRET, {
     expiresIn: '30d',
   });
 };
