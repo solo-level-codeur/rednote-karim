@@ -3,7 +3,7 @@ const router = express.Router();
 const { createNoteController, getAllNotesController, getAllNotesFromProjectController, getNoteByIdController, updateNoteController, deleteNoteController, searchNotesController, getFilteredNotesController } = require('../controllers/noteController');
 const { registerUser, loginUser, getUserProfile } = require('../controllers/userController');
 const { protect, authorizeNoteOwner, authorizeNoteEdit, authorizeNoteDelete } = require('../middlewares/authMiddleware');
-const { checkPermission } = require('../middlewares/permissionMiddleware');
+const { can } = require('../middlewares/rbacMiddleware');
 
 // Routes utilisateur
 router.post('/register', registerUser);
@@ -16,8 +16,8 @@ router.get('/', protect, getAllNotesController);
 // Route pour récupérer une note par ID (protégée)
 router.get('/note/:id', protect, authorizeNoteOwner, getNoteByIdController);
 
-// Route pour créer une nouvelle note (protégée)
-router.post('/note', protect, createNoteController);
+// Route pour créer une nouvelle note (Dev+ seulement)
+router.post('/note', protect, can('create_notes'), createNoteController);
 
 // Route pour mettre à jour une note par ID (protégée) - Dev+ peuvent modifier leurs notes, Admin/Manager toutes
 router.put('/note/:id', protect, authorizeNoteEdit, updateNoteController);

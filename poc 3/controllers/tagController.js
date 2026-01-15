@@ -123,7 +123,6 @@ const deleteTagController = async (req, res) => {
   }
 
   try {
-    console.log(`🗑️ DEBUG Delete Tag - ID: ${id}, User: ${req.user.email}, Role: ${req.user.role_id}`);
     
     const success = await deleteTag(id, userId);
     if (!success) {

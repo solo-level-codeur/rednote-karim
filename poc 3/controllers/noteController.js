@@ -1,4 +1,5 @@
 const { createNote, getAllNotes, getAllNotesFromProject, getNoteById, updateNote, deleteNote, searchNotes, getNotesWithFilters } = require('../models/noteModel');
+const { hasPermission } = require('../models/rbac');
 
 // Créer une nouvelle note
 const createNoteController = async (req, res) => {
@@ -49,11 +50,9 @@ const getNoteByIdController = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id; // ID de l'utilisateur authentifié
   const userRole = req.user.role_id;
-  const { ROLES } = require('../middlewares/permissionMiddleware');
-
   try {
     // Admin peut voir toutes les notes
-    const isAdminAccess = userRole === ROLES.ADMIN;
+    const isAdminAccess = await hasPermission(userId, 'manage_users');
     const note = await getNoteById(id, userId, isAdminAccess);
     if (!note) {
       return res.status(404).json({ message: 'Note non trouvée' });
@@ -61,7 +60,7 @@ const getNoteByIdController = async (req, res) => {
     
     // Ajouter les permissions calculées côté serveur
     const isOwner = note.user_id === userId;
-    const isAdmin = userRole === ROLES.ADMIN;
+    const isAdmin = await hasPermission(userId, 'manage_users');
     
     const responseNote = {
       ...note,
@@ -82,14 +81,12 @@ const updateNoteController = async (req, res) => {
   const { id } = req.params;
   const { title, content, projectId } = req.body;
   const userId = req.user.id; // ID de l'utilisateur authentifié
-  const userRole = req.user.role_id;
-  const { ROLES } = require('../middlewares/permissionMiddleware');
+  const { hasPermission } = require('../models/rbac');
 
-  console.log('🔧 DEBUG Update note:', { id, title, content, projectId, userId });
 
   try {
     // Admin peut modifier toutes les notes
-    const isAdminAccess = userRole === ROLES.ADMIN;
+    const isAdminAccess = await hasPermission(userId, 'manage_users');
     const success = await updateNote(id, title, content, userId, projectId, isAdminAccess);
     if (!success) {
       return res.status(404).json({ message: 'Note non trouvée' });
@@ -106,7 +103,6 @@ const deleteNoteController = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id; // ID de l'utilisateur authentifié
 
-  console.log('🗑️ DEBUG Delete - Note ID:', id, 'User ID:', userId);
 
   try {
     const success = await deleteNote(id, userId);
@@ -177,12 +173,9 @@ const getFilteredNotesController = async (req, res) => {
 const getAllNotesFromProjectController = async (req, res) => {
   const { projectId } = req.params;
   const userId = req.user.id;
-  const userRole = req.user.role_id;
-  const { ROLES } = require('../middlewares/permissionMiddleware');
-
   try {
     // Admin peut accéder à tous les projets
-    const isAdminAccess = userRole === ROLES.ADMIN;
+    const isAdminAccess = await hasPermission(userId, 'manage_users');
     const notes = await getAllNotesFromProject(projectId, userId, isAdminAccess);
     res.json({
       projectId: projectId,

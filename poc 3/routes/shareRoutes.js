@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middlewares/authMiddleware');
+const { can } = require('../middlewares/rbacMiddleware');
 const {
   shareNoteController,
   unshareNoteController,
@@ -13,10 +14,10 @@ const {
 // Toutes les routes de partage nécessitent une authentification
 router.use(protect);
 
-// Routes pour partager des notes
-router.post('/note/:noteId', shareNoteController);                    // POST /api/share/note/1
-router.delete('/note/:noteId/user/:userId', unshareNoteController);   // DELETE /api/share/note/1/user/2
-router.put('/note/:noteId/user/:userId', updateSharePermissionController); // PUT /api/share/note/1/user/2
+// Routes pour partager des notes (propriétaires seulement)
+router.post('/note/:noteId', can('edit_notes'), shareNoteController);                    // POST /api/share/note/1
+router.delete('/note/:noteId/user/:userId', can('edit_notes'), unshareNoteController);   // DELETE /api/share/note/1/user/2
+router.put('/note/:noteId/user/:userId', can('edit_notes'), updateSharePermissionController); // PUT /api/share/note/1/user/2
 
 // Routes pour récupérer des informations de partage
 router.get('/notes', getSharedNotesController);              // GET /api/share/notes (notes partagées avec moi)

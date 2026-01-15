@@ -1,5 +1,4 @@
 const db = require('../config/db');
-const { ROLES } = require('../middlewares/permissionMiddleware');
 
 // Créer un commentaire sur une note
 const createComment = async (noteId, userId, content) => {
@@ -78,8 +77,10 @@ const deleteComment = async (commentId, userId) => {
 
 // Vérifier si un utilisateur peut commenter une note
 const canCommentNote = async (noteId, userId, userRole = null) => {
+  const { hasPermission } = require('./rbac');
+  
   // Admin peut toujours commenter
-  if (userRole === ROLES.ADMIN) {
+  if (await hasPermission(userId, 'manage_users')) {
     return { canComment: true, isOwner: false, isAdmin: true };
   }
 

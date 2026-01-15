@@ -1,6 +1,5 @@
 const { createProject, getAllProjects, getProjectById, updateProject, deleteProject, addProjectMember, removeProjectMember, getProjectMembers, updateMemberRole } = require('../models/projectModel');
-const { ROLES } = require('../middlewares/permissionMiddleware');
-
+const { hasPermission } = require('../models/rbac');
 // Créer un nouveau projet
 const createProjectController = async (req, res) => {
   const { name, description } = req.body;
@@ -24,19 +23,13 @@ const createProjectController = async (req, res) => {
 // Obtenir tous les projets d'un utilisateur
 const getAllProjectsController = async (req, res) => {
   const userId = req.user.id;
-  const userRole = req.user.role_id;
-
   try {
-    // DEBUG: Afficher les infos utilisateur pour diagnostic
-    console.log(`DEBUG - User: ${req.user.email}, Role ID: ${userRole}, ROLES.ADMIN: ${ROLES.ADMIN}`);
     
     // Seuls les Admins peuvent voir tous les projets
-    if (userRole === ROLES.ADMIN) {
-      console.log('DEBUG - Admin access granted');
+    if (await hasPermission(userId, 'manage_users')) {
       const projects = await getAllProjects(userId, true); // true pour accès admin
       res.json(projects);
     } else {
-      console.log('DEBUG - Non-admin access - filtered projects only');
       // Manager, Developer et Viewer voient seulement leurs projets + projets invités
       const projects = await getAllProjects(userId, false);
       res.json(projects);
@@ -51,11 +44,10 @@ const getAllProjectsController = async (req, res) => {
 const getProjectByIdController = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id;
-  const userRole = req.user.role_id;
 
   try {
     // Seuls les Admins peuvent voir tous les projets
-    const isAdminAccess = userRole === ROLES.ADMIN;
+    const isAdminAccess = await hasPermission(userId, 'manage_users');
     const project = await getProjectById(id, userId, isAdminAccess);
     
     if (!project) {
@@ -94,8 +86,7 @@ const deleteProjectController = async (req, res) => {
 
   try {
     // Admin peut supprimer n'importe quel projet
-    const isAdminRequest = userRole === ROLES.ADMIN;
-    console.log(`🗑️ DEBUG Delete Project - ID: ${id}, User: ${req.user.email}, Role: ${userRole}, Admin: ${isAdminRequest}`);
+    const isAdminRequest = await hasPermission(userId, 'manage_users');
     
     const success = await deleteProject(id, userId, isAdminRequest);
     if (!success) {
@@ -141,7 +132,7 @@ const removeProjectMemberController = async (req, res) => {
 
   try {
     // Admin peut retirer tout membre
-    const isAdminRequest = userRole === ROLES.ADMIN;
+    const isAdminRequest = await hasPermission(userId, 'manage_users');
     const success = await removeProjectMember(projectId, userId, requesterId, isAdminRequest);
     if (!success) {
       return res.status(404).json({ message: 'Membre non trouvé dans le projet' });
@@ -165,7 +156,7 @@ const getProjectMembersController = async (req, res) => {
 
   try {
     // Admin peut accéder à tous les projets
-    const isAdminAccess = userRole === ROLES.ADMIN;
+    const isAdminAccess = await hasPermission(userId, 'manage_users');
     const members = await getProjectMembers(projectId, userId, isAdminAccess);
     res.json({
       projectId,
@@ -191,7 +182,7 @@ const updateMemberRoleController = async (req, res) => {
 
   try {
     // Admin peut modifier tous les rôles
-    const isAdminRequest = userRole === ROLES.ADMIN;
+    const isAdminRequest = await hasPermission(userId, 'manage_users');
     const success = await updateMemberRole(projectId, userId, role, requesterId, isAdminRequest);
     if (!success) {
       return res.status(404).json({ message: 'Membre non trouvé dans le projet' });
