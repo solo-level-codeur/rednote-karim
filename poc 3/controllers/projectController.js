@@ -82,7 +82,6 @@ const updateProjectController = async (req, res) => {
 const deleteProjectController = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id;
-  const userRole = req.user.role_id;
 
   try {
     // Admin peut supprimer n'importe quel projet
@@ -105,7 +104,6 @@ const deleteProjectController = async (req, res) => {
 const addProjectMemberController = async (req, res) => {
   const { projectId } = req.params;
   const { userId, role } = req.body;
-  const requesterId = req.user.id;
 
   try {
     const success = await addProjectMember(projectId, userId, role || 'Member');
@@ -128,7 +126,6 @@ const addProjectMemberController = async (req, res) => {
 const removeProjectMemberController = async (req, res) => {
   const { projectId, userId } = req.params;
   const requesterId = req.user.id;
-  const userRole = req.user.role_id;
 
   try {
     // Admin peut retirer tout membre
@@ -152,7 +149,6 @@ const removeProjectMemberController = async (req, res) => {
 const getProjectMembersController = async (req, res) => {
   const { projectId } = req.params;
   const userId = req.user.id;
-  const userRole = req.user.role_id;
 
   try {
     // Admin peut accéder à tous les projets
@@ -178,7 +174,6 @@ const updateMemberRoleController = async (req, res) => {
   const { projectId, userId } = req.params;
   const { role } = req.body;
   const requesterId = req.user.id;
-  const userRole = req.user.role_id;
 
   try {
     // Admin peut modifier tous les rôles

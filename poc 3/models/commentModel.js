@@ -79,7 +79,12 @@ const deleteComment = async (commentId, userId) => {
 const canCommentNote = async (noteId, userId, userRole = null) => {
   const { hasPermission } = require('./rbac');
   
-  // Admin peut toujours commenter
+  // Vérifier d'abord la permission de base pour commenter
+  if (!(await hasPermission(userId, 'comment_notes'))) {
+    return { canComment: false, reason: 'Pas de permission comment_notes' };
+  }
+
+  // Admin peut toujours commenter (après avoir la permission de base)
   if (await hasPermission(userId, 'manage_users')) {
     return { canComment: true, isOwner: false, isAdmin: true };
   }

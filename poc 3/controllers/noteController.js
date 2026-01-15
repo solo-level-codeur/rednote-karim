@@ -49,7 +49,6 @@ const getAllNotesController = async (req, res) => {
 const getNoteByIdController = async (req, res) => {
   const { id } = req.params;
   const userId = req.user.id; // ID de l'utilisateur authentifié
-  const userRole = req.user.role_id;
   try {
     // Admin peut voir toutes les notes
     const isAdminAccess = await hasPermission(userId, 'manage_users');

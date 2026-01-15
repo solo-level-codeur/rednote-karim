@@ -26,9 +26,9 @@ router.get('/check-permission/:permission', protect, async (req, res) => {
   }
 });
 
-// Routes d'administration (nécessitent authentification + rôle admin)
-router.get('/admin/users', protect, can('manage_users'), getUsersAdmin);
-router.put('/admin/users/role', protect, can('manage_users'), updateUserRoleAdmin);
-router.delete('/admin/users/:userId', protect, can('manage_users'), deleteUserAdmin);
+// Routes d'administration 
+router.get('/admin/users', protect, can('view_users'), getUsersAdmin); // Manager + Admin peuvent voir
+router.put('/admin/users/role', protect, can('manage_users'), updateUserRoleAdmin); // Admin seulement
+router.delete('/admin/users/:userId', protect, can('manage_users'), deleteUserAdmin); // Admin seulement
 
 module.exports = router;
