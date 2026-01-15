@@ -103,18 +103,17 @@ const deleteProjectController = async (req, res) => {
 // Ajouter un membre à un projet
 const addProjectMemberController = async (req, res) => {
   const { projectId } = req.params;
-  const { userId, role } = req.body;
+  const { userId } = req.body;
 
   try {
-    const success = await addProjectMember(projectId, userId, role || 'Member');
+    const success = await addProjectMember(projectId, userId);
     if (!success) {
       return res.status(400).json({ message: 'Impossible d\'ajouter le membre' });
     }
     res.status(201).json({ 
       message: 'Membre ajouté avec succès',
       projectId,
-      userId,
-      role: role || 'Member'
+      userId
     });
   } catch (error) {
     console.error('Erreur lors de l\'ajout du membre :', error);

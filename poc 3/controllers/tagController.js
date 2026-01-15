@@ -13,14 +13,13 @@ const {
 // Créer un nouveau tag
 const createTagController = async (req, res) => {
   const { name } = req.body;
-  const userId = req.user.id;
 
   if (!name || name.trim().length === 0) {
     return res.status(400).json({ message: 'Le nom du tag est requis' });
   }
 
   try {
-    const tagId = await createTag(name.trim(), null, userId);
+    const tagId = await createTag(name.trim());
     res.status(201).json({
       id: tagId,
       name: name.trim(),
@@ -36,12 +35,10 @@ const createTagController = async (req, res) => {
   }
 };
 
-// Obtenir tous les tags d'un utilisateur
-const getAllTagsController = async (req, res) => {
-  const userId = req.user.id;
-
+// Obtenir tous les tags
+const getAllTagsController = async (_, res) => {
   try {
-    const tags = await getAllTags(userId);
+    const tags = await getAllTags();
     // Normaliser la réponse: tag_id -> id, tag_name -> name
     const normalizedTags = tags.map(tag => ({
       id: tag.tag_id,
@@ -57,7 +54,6 @@ const getAllTagsController = async (req, res) => {
 // Obtenir un tag par ID
 const getTagByIdController = async (req, res) => {
   const { id } = req.params;
-  const userId = req.user.id;
 
   // Validation de l'ID
   if (!id || id === 'undefined' || isNaN(id)) {
@@ -65,7 +61,7 @@ const getTagByIdController = async (req, res) => {
   }
 
   try {
-    const tag = await getTagById(id, userId);
+    const tag = await getTagById(id);
     if (!tag) {
       return res.status(404).json({ message: 'Tag non trouvé' });
     }
@@ -85,7 +81,6 @@ const getTagByIdController = async (req, res) => {
 const updateTagController = async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
-  const userId = req.user.id;
 
   // Validation de l'ID
   if (!id || id === 'undefined' || isNaN(id)) {
@@ -97,7 +92,7 @@ const updateTagController = async (req, res) => {
   }
 
   try {
-    const success = await updateTag(id, name.trim(), null, userId);
+    const success = await updateTag(id, name.trim());
     if (!success) {
       return res.status(404).json({ message: 'Tag non trouvé' });
     }
@@ -115,7 +110,6 @@ const updateTagController = async (req, res) => {
 // Supprimer un tag
 const deleteTagController = async (req, res) => {
   const { id } = req.params;
-  const userId = req.user.id;
 
   // Validation de l'ID
   if (!id || id === 'undefined' || isNaN(id)) {
@@ -123,8 +117,7 @@ const deleteTagController = async (req, res) => {
   }
 
   try {
-    
-    const success = await deleteTag(id, userId);
+    const success = await deleteTag(id);
     if (!success) {
       console.log(`❌ Tag ${id} non trouvé pour suppression`);
       return res.status(404).json({ message: 'Tag non trouvé' });

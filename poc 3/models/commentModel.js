@@ -75,63 +75,54 @@ const deleteComment = async (commentId, userId) => {
   return result.affectedRows;
 };
 
+// Vérifications d'accès aux notes - Fonctions helper
+const isNoteOwner = async (noteId, userId) => {
+  const [result] = await db.query('SELECT 1 FROM notes WHERE note_id = ? AND user_id = ?', [noteId, userId]);
+  return result.length > 0;
+};
+
+const isNoteShared = async (noteId, userId) => {
+  const [result] = await db.query('SELECT permission FROM note_shares WHERE note_id = ? AND user_id = ?', [noteId, userId]);
+  return result.length > 0 ? result[0].permission : null;
+};
+
+const isProjectMember = async (noteId, userId) => {
+  const [result] = await db.query(`
+    SELECT 1 FROM notes n
+    INNER JOIN project_members pm ON n.project_id = pm.project_id
+    WHERE n.note_id = ? AND pm.user_id = ?
+  `, [noteId, userId]);
+  return result.length > 0;
+};
+
 // Vérifier si un utilisateur peut commenter une note
-const canCommentNote = async (noteId, userId, userRole = null) => {
+const canCommentNote = async (noteId, userId) => {
   const { hasPermission } = require('./rbac');
   
-  // Vérifier d'abord la permission de base pour commenter
+  // Vérification permission de base
   if (!(await hasPermission(userId, 'comment_notes'))) {
     return { canComment: false, reason: 'Pas de permission comment_notes' };
   }
 
-  // Admin peut toujours commenter (après avoir la permission de base)
+  // Admin bypass
   if (await hasPermission(userId, 'manage_users')) {
     return { canComment: true, isOwner: false, isAdmin: true };
   }
 
-  // Vérifier si c'est le propriétaire de la note
-  const [ownerCheck] = await db.query(`
-    SELECT note_id 
-    FROM notes 
-    WHERE note_id = ? AND user_id = ?
-  `, [noteId, userId]);
-  
-  if (ownerCheck.length > 0) {
+  // Propriétaire
+  if (await isNoteOwner(noteId, userId)) {
     return { canComment: true, isOwner: true };
   }
 
-  // Vérifier si la note est partagée avec l'utilisateur
-  const [shareCheck] = await db.query(`
-    SELECT permission 
-    FROM note_shares 
-    WHERE note_id = ? AND user_id = ?
-  `, [noteId, userId]);
-
-  if (shareCheck.length > 0) {
-    return { 
-      canComment: true, 
-      isOwner: false,
-      permission: shareCheck[0].permission 
-    };
+  // Note partagée
+  const sharedPermission = await isNoteShared(noteId, userId);
+  if (sharedPermission) {
+    return { canComment: true, isOwner: false, permission: sharedPermission };
   }
 
-  // Vérifier si l'utilisateur est membre du projet de cette note
-  const [projectCheck] = await db.query(`
-    SELECT 
-      project_members.user_id, 
-      projects.project_id
-    FROM notes 
-    INNER JOIN project_members ON notes.project_id = project_members.project_id
-    INNER JOIN projects ON notes.project_id = projects.project_id
-    WHERE notes.note_id = ? AND project_members.user_id = ?
-  `, [noteId, userId]);
-
-  if (projectCheck.length > 0) {
-    return { 
-      canComment: true, 
-      isOwner: false,
-      projectMember: true
-    };
+  // Membre du projet
+  if (await isProjectMember(noteId, userId)) {
+    return { canComment: true, isOwner: false, projectMember: true };
   }
 
   return { canComment: false, isOwner: false };

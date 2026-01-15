@@ -166,7 +166,7 @@ const deleteProject = async (projectId, userId, isAdminRequest = false) => {
 };
 
 // Ajouter un membre à un projet (compatible schema memo)
-const addProjectMember = async (projectId, userId, role = 'Member') => {
+const addProjectMember = async (projectId, userId) => {
   try {
     const [result] = await db.query(
       'INSERT INTO project_members (project_id, user_id) VALUES (?, ?)',

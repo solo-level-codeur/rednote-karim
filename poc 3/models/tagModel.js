@@ -1,7 +1,7 @@
 const db = require('../config/db');
 
 // Créer un nouveau tag
-const createTag = async (name, color = '#808080', userId) => {
+const createTag = async (name) => {
   const [result] = await db.query(
     'INSERT INTO tags (tag_name) VALUES (?)',
     [name]
@@ -10,7 +10,7 @@ const createTag = async (name, color = '#808080', userId) => {
 };
 
 // Obtenir tous les tags
-const getAllTags = async (userId) => {
+const getAllTags = async () => {
   const [rows] = await db.query(
     'SELECT * FROM tags ORDER BY tag_name'
   );
@@ -18,7 +18,7 @@ const getAllTags = async (userId) => {
 };
 
 // Obtenir un tag par ID
-const getTagById = async (tagId, userId) => {
+const getTagById = async (tagId) => {
   const [rows] = await db.query(
     'SELECT * FROM tags WHERE tag_id = ?',
     [tagId]
@@ -27,7 +27,7 @@ const getTagById = async (tagId, userId) => {
 };
 
 // Mettre à jour un tag
-const updateTag = async (tagId, name, color, userId) => {
+const updateTag = async (tagId, name) => {
   const [result] = await db.query(
     'UPDATE tags SET tag_name = ? WHERE tag_id = ?',
     [name, tagId]
@@ -36,7 +36,7 @@ const updateTag = async (tagId, name, color, userId) => {
 };
 
 // Supprimer un tag
-const deleteTag = async (tagId, userId) => {
+const deleteTag = async (tagId) => {
   // D'abord supprimer les associations note-tag
   await db.query('DELETE FROM note_tags WHERE tag_id = ?', [tagId]);
   

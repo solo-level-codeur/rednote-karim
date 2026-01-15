@@ -14,7 +14,6 @@ const createCommentController = async (req, res) => {
   const { noteId } = req.params;
   const { content } = req.body;
   const userId = req.user.id;
-  const userRole = req.user.role_id;
 
   if (!content || content.trim().length === 0) {
     return res.status(400).json({ message: 'Le contenu du commentaire est requis' });
@@ -22,7 +21,7 @@ const createCommentController = async (req, res) => {
 
   try {
     // Vérifier si l'utilisateur peut commenter cette note
-    const access = await canCommentNote(noteId, userId, userRole);
+    const access = await canCommentNote(noteId, userId);
     if (!access.canComment) {
       return res.status(403).json({ message: 'Vous n\'êtes pas autorisé à commenter cette note' });
     }
@@ -46,11 +45,10 @@ const createCommentController = async (req, res) => {
 const getCommentsController = async (req, res) => {
   const { noteId } = req.params;
   const userId = req.user.id;
-  const userRole = req.user.role_id;
 
   try {
     // Vérifier si l'utilisateur peut voir cette note (et donc ses commentaires)
-    const access = await canCommentNote(noteId, userId, userRole);
+    const access = await canCommentNote(noteId, userId);
     if (!access.canComment) {
       return res.status(403).json({ message: 'Vous n\'êtes pas autorisé à voir les commentaires de cette note' });
     }
@@ -81,7 +79,7 @@ const getCommentController = async (req, res) => {
     }
 
     // Vérifier si l'utilisateur peut voir cette note
-    const access = await canCommentNote(comment.id_notes, userId);
+    const access = await canCommentNote(comment.note_id, userId);
     if (!access.canComment) {
       return res.status(403).json({ message: 'Vous n\'êtes pas autorisé à voir ce commentaire' });
     }

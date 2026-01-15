@@ -93,53 +93,55 @@ const updateSharePermission = async (noteId, userId, newPermission) => {
   return result.affectedRows;
 };
 
-// Obtenir toutes les notes accessibles par un utilisateur (propres + partagées)
-const getAllAccessibleNotes = async (userId, projectId = null) => {
-  let query = `
-    SELECT 
-      notes.*,
-      projects.project_name as project_name,
-      'owner' as access_type,
-      'write' as permission
+// Helper pour construire les conditions WHERE
+const buildProjectFilter = (projectId) => {
+  return projectId ? 'AND notes.project_id = ?' : '';
+};
+
+// Obtenir notes possédées par l'utilisateur
+const getOwnedNotes = async (userId, projectId = null) => {
+  const projectFilter = buildProjectFilter(projectId);
+  const params = projectId ? [userId, parseInt(projectId, 10)] : [userId];
+  
+  const [rows] = await db.query(`
+    SELECT notes.*, projects.project_name, 'owner' as access_type, 'write' as permission
     FROM notes 
     LEFT JOIN projects ON notes.project_id = projects.project_id
-    WHERE notes.user_id = ?`;
+    WHERE notes.user_id = ? ${projectFilter}
+  `, params);
   
-  let params = [userId];
+  return rows;
+};
+
+// Obtenir notes partagées avec l'utilisateur
+const getSharedNotesOnly = async (userId, projectId = null) => {
+  const projectFilter = buildProjectFilter(projectId);
+  const params = projectId ? [userId, parseInt(projectId, 10)] : [userId];
   
-  if (projectId) {
-    query += ` AND notes.project_id = ?`;
-    params.push(parseInt(projectId, 10));
-  }
-
-  query += `
-    UNION
-
-    SELECT 
-      notes.*,
-      projects.project_name as project_name,
-      'shared' as access_type,
-      note_shares.permission
+  const [rows] = await db.query(`
+    SELECT notes.*, projects.project_name, 'shared' as access_type, note_shares.permission
     FROM notes 
     INNER JOIN note_shares ON notes.note_id = note_shares.note_id
     LEFT JOIN projects ON notes.project_id = projects.project_id
-    WHERE note_shares.user_id = ?`;
-    
-  params.push(userId);
+    WHERE note_shares.user_id = ? ${projectFilter}
+  `, params);
   
-  if (projectId) {
-    query += ` AND notes.project_id = ?`;
-    params.push(parseInt(projectId, 10));
-  }
-
-  query += ` ORDER BY updated_at DESC`;
-  
-  console.log('SQL Query:', query);
-  console.log('Params:', params);
-  
-  const [rows] = await db.query(query, params);
-  console.log('Results:', rows.length, 'rows');
   return rows;
+};
+
+// Obtenir toutes les notes accessibles par un utilisateur (propres + partagées)
+const getAllAccessibleNotes = async (userId, projectId = null) => {
+  // Récupérer les deux types de notes en parallèle
+  const [ownedNotes, sharedNotes] = await Promise.all([
+    getOwnedNotes(userId, projectId),
+    getSharedNotesOnly(userId, projectId)
+  ]);
+  
+  // Combiner et trier par date de mise à jour
+  const allNotes = [...ownedNotes, ...sharedNotes]
+    .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+  
+  return allNotes;
 };
 
 module.exports = {

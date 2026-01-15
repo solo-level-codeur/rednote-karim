@@ -63,57 +63,67 @@ const updateUserProfile = async (userId, profileData) => {
     return result.affectedRows > 0;
 };
 
+// Helper pour récupérer le profil utilisateur de base avec rôle
+const getUserBasicProfile = async (userId) => {
+    const [rows] = await db.query(`
+        SELECT 
+            users.user_id, 
+            users.firstname, 
+            users.lastname, 
+            users.email, 
+            users.telephone, 
+            users.description,
+            roles.role_name as role
+        FROM users 
+        LEFT JOIN roles ON users.role_id = roles.role_id 
+        WHERE users.user_id = ?
+    `, [userId]);
+    
+    return rows[0] || null;
+};
+
+// Helper pour récupérer toutes les stats en une seule requête
+const getUserStats = async (userId) => {
+    try {
+        const [statsRows] = await db.query(`
+            SELECT 
+                (SELECT COUNT(*) FROM notes WHERE user_id = ?) as total_notes,
+                (SELECT COUNT(*) FROM project_members WHERE user_id = ?) as total_projects,
+                (SELECT COUNT(*) FROM comments WHERE user_id = ?) as total_comments,
+                (SELECT COUNT(*) FROM note_shares WHERE user_id = ?) as shared_notes
+        `, [userId, userId, userId, userId]);
+        
+        return statsRows[0] || {
+            total_notes: 0,
+            total_projects: 0, 
+            total_comments: 0,
+            shared_notes: 0
+        };
+    } catch (error) {
+        // Fallback si une table n'existe pas
+        return {
+            total_notes: 0,
+            total_projects: 0,
+            total_comments: 0, 
+            shared_notes: 0
+        };
+    }
+};
+
 // Obtenir le profil complet d'un utilisateur avec ses statistiques
 const getUserProfileWithStats = async (userId) => {
     try {
-        // Profil utilisateur avec rôle
-        const [userRows] = await db.query(`
-            SELECT 
-                users.user_id, 
-                users.firstname, 
-                users.lastname, 
-                users.email, 
-                users.telephone, 
-                users.description,
-                roles.role_name as role
-            FROM users 
-            LEFT JOIN roles ON users.role_id = roles.role_id 
-            WHERE users.user_id = ?
-        `, [userId]);
+        // Récupérer profil et stats en parallèle
+        const [profile, stats] = await Promise.all([
+            getUserBasicProfile(userId),
+            getUserStats(userId)
+        ]);
         
-        if (userRows.length === 0) return null;
-        
-        const user = userRows[0];
-        
-        // Récupérer les statistiques
-        const [notesCount] = await db.query(
-            'SELECT COUNT(*) as total_notes FROM notes WHERE user_id = ?',
-            [userId]
-        );
-        
-        const [projectsCount] = await db.query(
-            'SELECT COUNT(*) as total_projects FROM project_members WHERE user_id = ?',
-            [userId]
-        ).catch(() => [{ total_projects: 0 }]); // Fallback
-        
-        const [commentsCount] = await db.query(
-            'SELECT COUNT(*) as total_comments FROM comments WHERE user_id = ?',
-            [userId]
-        ).catch(() => [{ total_comments: 0 }]); // Fallback
-        
-        const [sharedNotesCount] = await db.query(
-            'SELECT COUNT(*) as shared_notes FROM note_shares WHERE user_id = ?',
-            [userId]
-        ).catch(() => [{ shared_notes: 0 }]); // Fallback
+        if (!profile) return null;
         
         return {
-            ...user,
-            stats: {
-                total_notes: notesCount[0].total_notes,
-                total_projects: projectsCount[0]?.total_projects || 0,
-                total_comments: commentsCount[0]?.total_comments || 0,
-                shared_notes: sharedNotesCount[0]?.shared_notes || 0
-            }
+            ...profile,
+            stats
         };
     } catch (error) {
         console.error('Erreur getUserProfileWithStats:', error.message);
