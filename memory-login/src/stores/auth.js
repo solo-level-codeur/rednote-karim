@@ -17,8 +17,7 @@ export const authStore = {
     // Plus de stockage du token - géré par httpOnly cookies
     localStorage.setItem('user', JSON.stringify(userData))
     
-    // Nettoyer cache RBAC pour nouvelles permissions
-    rbac.clearCache()
+    // Plus de cache RBAC à nettoyer
   },
   
   async logout() {
@@ -35,7 +34,6 @@ export const authStore = {
     
     // Plus de suppression du token - géré par le serveur
     localStorage.removeItem('user')
-    rbac.clearCache()
   },
   
   initializeAuth() {
@@ -53,64 +51,16 @@ export const authStore = {
     }
   },
 
-  // ===========================================
-  // NOUVELLES MÉTHODES RBAC (remplacent ROLES)
-  // ===========================================
-
-  // Vérification générique de permission
-  async hasPermission(permission) {
-    if (!state.isAuthenticated) return false
-    return await rbac.hasPermission(permission)
+  // Méthodes utilitaires pour l'affichage
+  getUserName() {
+    return state.user ? `${state.user.firstname} ${state.user.lastname}` : ''
   },
 
-  // Méthodes de compatibilité pour l'interface
-  async isAdmin() {
-    return await rbac.isAdmin()
-  },
-
-  async isManager() {
-    return await rbac.isManager()
-  },
-
-  async canCreateNotes() {
-    return await rbac.canCreateNotes()
-  },
-
-  async canEditNotes() {
-    return await rbac.canEditNotes()
-  },
-
-  async canManageTags() {
-    return await rbac.canManageTags()
-  },
-
-  async canManageProjects() {
-    return await rbac.canManageProjects()
-  },
-
-  async canManageUsers() {
-    return await rbac.canManageUsers()
-  },
-
-  // Méthodes de compatibilité avec anciens noms
-  async canCreateProjects() {
-    return await rbac.canManageProjects()
-  },
-
-  async canViewProjects() {
-    return await rbac.hasPermission('view_projects')
-  },
-
-  async canDeleteProjects() {
-    return await rbac.isAdmin()
-  },
-
-  async canManageProjectMembers() {
-    return await rbac.hasPermission('manage_project_members')
+  getUserEmail() {
+    return state.user ? state.user.email : ''
   },
 
   getRoleName() {
-    // Méthode synchrone pour compatibilité
     const user = state.user
     if (!user || !user.role_id) return 'Unknown'
     
@@ -123,7 +73,7 @@ export const authStore = {
     return roleNames[user.role_id] || 'Unknown'
   },
 
-  // Méthodes synchrones pour router (basées sur role_id local)
+  // Méthodes synchrones pour router guards
   isAdmin() {
     return state.user?.role_id === 1
   },
@@ -132,20 +82,40 @@ export const authStore = {
     return state.user?.role_id <= 2
   },
 
-  // Méthodes utilitaires pour l'affichage
-  getUserName() {
-    return state.user ? `${state.user.firstname} ${state.user.lastname}` : ''
+  // Méthodes de compatibilité pour les composants
+  canCreateProjects() {
+    return rbac.canManageProjects()
   },
 
-  getUserEmail() {
-    return state.user ? state.user.email : ''
+  canManageProjects() {
+    return rbac.canManageProjects() 
   },
 
-  async getRoleLabel() {
-    // Plus de labels hardcodés - on se base sur les permissions
-    if (await this.canManageUsers()) return 'Admin'
-    if (await this.canManageProjects()) return 'Manager'  
-    if (await this.canEditNotes()) return 'Developer'
-    return 'Viewer'
+  canEditNotes() {
+    return rbac.canEditNotes()
+  },
+
+  canCreateNotes() {
+    return rbac.canCreateNotes()
+  },
+
+  canManageUsers() {
+    return rbac.canManageUsers()
+  },
+
+  canManageTags() {
+    return rbac.canManageTags()
+  },
+
+  canManageProjectMembers() {
+    return rbac.canManageProjects() // Si on peut gérer projets, on peut gérer membres
+  },
+
+  canViewProjects() {
+    return state.user?.role_id <= 3 // Tout le monde sauf Viewer
+  },
+
+  canDeleteProjects() {
+    return rbac.isAdmin() // Seulement Admin
   }
 }
