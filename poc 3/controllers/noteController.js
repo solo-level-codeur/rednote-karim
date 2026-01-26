@@ -1,4 +1,4 @@
-const { createNote, getAllNotes, getAllNotesFromProject, getNoteById, updateNote, deleteNote, searchNotes, getNotesWithFilters } = require('../models/noteModel');
+const { createNote, getAllNotes, getAllNotesFromProject, getNoteById, updateNote, deleteNote } = require('../models/noteModel');
 const { hasPermission } = require('../models/rbac');
 
 // Créer une nouvelle note
@@ -80,7 +80,6 @@ const updateNoteController = async (req, res) => {
   const { id } = req.params;
   const { title, content, projectId } = req.body;
   const userId = req.user.id; // ID de l'utilisateur authentifié
-  const { hasPermission } = require('../models/rbac');
 
 
   try {
@@ -115,58 +114,6 @@ const deleteNoteController = async (req, res) => {
   }
 };
 
-// Rechercher des notes
-const searchNotesController = async (req, res) => {
-  const userId = req.user.id;
-  const { q: searchTerm, projectId } = req.query;
-
-  if (!searchTerm || searchTerm.trim().length < 2) {
-    return res.status(400).json({ message: 'Le terme de recherche doit contenir au moins 2 caractères' });
-  }
-
-  try {
-    const notes = await searchNotes(userId, searchTerm.trim(), projectId);
-    res.json({
-      searchTerm,
-      projectId: projectId || null,
-      count: notes.length,
-      results: notes
-    });
-  } catch (error) {
-    console.error('Erreur lors de la recherche :', error);
-    res.status(500).json({ message: 'Erreur du serveur' });
-  }
-};
-
-// Obtenir des notes avec filtres
-const getFilteredNotesController = async (req, res) => {
-  const userId = req.user.id;
-  const filters = {
-    projectId: req.query.projectId,
-    dateFrom: req.query.dateFrom,
-    dateTo: req.query.dateTo,
-    sortBy: req.query.sortBy,
-    sortOrder: req.query.sortOrder,
-    limit: req.query.limit
-  };
-
-  // Nettoyer les filtres vides
-  Object.keys(filters).forEach(key => {
-    if (!filters[key]) delete filters[key];
-  });
-
-  try {
-    const notes = await getNotesWithFilters(userId, filters);
-    res.json({
-      filters: filters,
-      count: notes.length,
-      results: notes
-    });
-  } catch (error) {
-    console.error('Erreur lors de la récupération filtrée :', error);
-    res.status(500).json({ message: 'Erreur du serveur' });
-  }
-};
 
 // Obtenir toutes les notes d'un projet spécifique
 const getAllNotesFromProjectController = async (req, res) => {
@@ -197,7 +144,5 @@ module.exports = {
   getAllNotesFromProjectController,
   getNoteByIdController, 
   updateNoteController, 
-  deleteNoteController,
-  searchNotesController,
-  getFilteredNotesController
+  deleteNoteController
 };

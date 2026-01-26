@@ -132,86 +132,6 @@ const deleteNote = async (id, userId) => {
   }
 };
 
-// Rechercher des notes (compatible schema memo)
-const searchNotes = async (userId, searchTerm, projectId = null) => {
-  let query = `
-    SELECT 
-      notes.note_id, 
-      notes.title, 
-      notes.content, 
-      notes.user_id, 
-      notes.project_id, 
-      notes.created_at, 
-      notes.updated_at,
-      projects.project_name 
-    FROM notes 
-    LEFT JOIN projects ON notes.project_id = projects.project_id 
-    WHERE notes.user_id = ? 
-    AND (notes.title LIKE ? OR notes.content LIKE ?)
-  `;
-  let params = [userId, `%${searchTerm}%`, `%${searchTerm}%`];
-
-  // Filtrer par projet
-  if (projectId) {
-    query += ' AND notes.project_id = ?';
-    params.push(projectId);
-  }
-
-  query += ' ORDER BY notes.updated_at DESC';
-
-  const [rows] = await db.query(query, params);
-  return rows;
-};
-
-// Obtenir notes avec filtres avancés (compatible schema memo)
-const getNotesWithFilters = async (userId, filters = {}) => {
-  let query = `
-    SELECT 
-      notes.note_id, 
-      notes.title, 
-      notes.content, 
-      notes.user_id, 
-      notes.project_id, 
-      notes.created_at, 
-      notes.updated_at,
-      projects.project_name 
-    FROM notes 
-    LEFT JOIN projects ON notes.project_id = projects.project_id 
-    WHERE notes.user_id = ?
-  `;
-  let params = [userId];
-
-  // Filtre par projet
-  if (filters.projectId) {
-    query += ' AND notes.project_id = ?';
-    params.push(filters.projectId);
-  }
-
-  // Filtre par date
-  if (filters.dateFrom) {
-    query += ' AND notes.created_at >= ?';
-    params.push(filters.dateFrom);
-  }
-
-  if (filters.dateTo) {
-    query += ' AND notes.created_at <= ?';
-    params.push(filters.dateTo);
-  }
-
-  // Tri
-  const sortBy = filters.sortBy || 'updated_at';
-  const sortOrder = filters.sortOrder || 'DESC';
-  query += ` ORDER BY notes.${sortBy} ${sortOrder}`;
-
-  // Limite
-  if (filters.limit) {
-    query += ' LIMIT ?';
-    params.push(parseInt(filters.limit));
-  }
-
-  const [rows] = await db.query(query, params);
-  return rows;
-};
 
 module.exports = {
   getAllNotes,
@@ -220,6 +140,4 @@ module.exports = {
   createNote,
   updateNote,
   deleteNote,
-  searchNotes,
-  getNotesWithFilters,
 };
