@@ -141,7 +141,6 @@
 <script>
 // Sidebar est maintenant un composant global (voir main.js)
 import CommentsSection from '../components/CommentsSection.vue'
-import SimpleModal from '../components/SimpleModal.vue'
 import TagSelector from '../components/TagSelector.vue'
 import SimpleEditorToolbar from '../components/SimpleEditorToolbar.vue'
 import { notesAPI, projectsAPI } from '../services/api'
@@ -154,7 +153,6 @@ export default {
   name: 'NoteDetailView',
   components: {
     CommentsSection,
-    SimpleModal,
     TagSelector,
     SimpleEditorToolbar
   },
