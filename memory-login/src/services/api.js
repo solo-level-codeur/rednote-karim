@@ -41,11 +41,6 @@ export const notesAPI = {
   createNote: (noteData) => api.post('/notes/note', noteData),
   updateNote: (id, noteData) => api.put(`/notes/note/${id}`, noteData),
   deleteNote: (id) => api.delete(`/notes/note/${id}`),
-  searchNotes: (query, projectId) => {
-    const params = new URLSearchParams({ q: query })
-    if (projectId) params.append('projectId', projectId)
-    return api.get(`/notes/search?${params}`)
-  },
 }
 
 export const projectsAPI = {

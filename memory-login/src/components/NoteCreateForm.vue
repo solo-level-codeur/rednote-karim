@@ -57,19 +57,7 @@
       </div>
     </div>
     
-    <div class="card-footer bg-light d-flex justify-content-between align-items-center">
-      <div class="d-flex gap-2">
-        <button 
-          class="btn btn-outline-info btn-sm"
-          @click="showShareOptions = !showShareOptions"
-          type="button"
-          :disabled="loading"
-        >
-          <i class="fas fa-share-alt me-2"></i>
-          {{ showShareOptions ? 'Masquer partage' : 'Options de partage' }}
-        </button>
-      </div>
-      
+    <div class="card-footer bg-light d-flex justify-content-end align-items-center">
       <div class="d-flex gap-2">
       <button 
         class="btn btn-primary btn-lg d-flex align-items-center"
@@ -89,36 +77,6 @@
       </div>
     </div>
 
-    <!-- Section de partage (collapsible) -->
-    <div v-if="showShareOptions" class="card-footer border-top">
-      <div class="share-section">
-        <h6 class="text-muted mb-3">
-          <i class="fas fa-share-alt me-2"></i>
-          Options de partage
-        </h6>
-        <div class="form-check mb-2">
-          <input 
-            class="form-check-input" 
-            type="checkbox" 
-            id="shareAfterCreation"
-            v-model="shareAfterCreation"
-          >
-          <label class="form-check-label" for="shareAfterCreation">
-            Partager la note après création
-          </label>
-        </div>
-        <div v-if="shareAfterCreation" class="mt-2">
-          <label class="form-label small">Partager avec :</label>
-          <input 
-            type="email" 
-            class="form-control form-control-sm" 
-            placeholder="email@example.com"
-            v-model="shareEmail"
-          >
-          <small class="text-muted">La note sera partagée automatiquement avec cet utilisateur</small>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -152,10 +110,7 @@ export default {
   data() {
     return {
       selectedTags: [],
-      selectedProject: null,
-      showShareOptions: false,
-      shareAfterCreation: false,
-      shareEmail: ''
+      selectedProject: null
     }
   },
   computed: {
@@ -174,11 +129,7 @@ export default {
         const noteData = {
           ...this.localNote,
           tags: this.selectedTags,
-          projectId: this.selectedProject,
-          shareSettings: {
-            shouldShare: this.shareAfterCreation,
-            shareEmail: this.shareEmail
-          }
+          projectId: this.selectedProject
         }
         this.$emit('create', noteData)
       }
@@ -187,9 +138,6 @@ export default {
       // Reset all form data
       this.selectedTags = []
       this.selectedProject = null
-      this.showShareOptions = false
-      this.shareAfterCreation = false
-      this.shareEmail = ''
       this.$emit('cancel')
     }
   }

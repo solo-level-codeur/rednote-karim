@@ -1,7 +1,6 @@
 <template>
   <div class="project-manager">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2><i class="fas fa-folder-open"></i> Mes Projets</h2>
+    <div class="d-flex justify-content-end mb-4">
       <button 
         class="btn btn-primary" 
         @click="showCreateModal = true"
@@ -254,14 +253,6 @@ export default {
 </script>
 
 <style scoped>
-.project-card {
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.project-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
 
 .project-meta {
   margin-top: 1rem;

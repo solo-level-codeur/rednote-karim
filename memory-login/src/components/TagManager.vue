@@ -164,15 +164,6 @@ export default {
 </script>
 
 <style scoped>
-.tag-card {
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.tag-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
 .dropdown-toggle::after {
   display: none;
 }

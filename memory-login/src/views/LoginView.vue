@@ -1,10 +1,5 @@
 <template>
   <div class="container">
-    
-
-    
-    <AppHeader />
-    
     <div class="center-wrapper">
       <div class="text-center my-5">
         <h1 class="display-4 fw-bold text-primary">Welcome Back</h1>
@@ -15,13 +10,11 @@
 </template>
 
 <script>
-import AppHeader from '../components/AppHeader.vue'
 import LoginForm from '../components/LoginForm.vue'
 
 export default {
   name: 'LoginView',
   components: {
-    AppHeader,
     LoginForm
   }
 }

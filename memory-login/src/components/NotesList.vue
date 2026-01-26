@@ -20,8 +20,7 @@
     
     <NotesHeader 
       :showCreateForm="showCreateForm" 
-      @create-note="showCreateForm = true"
-      @search="showSearchModal = true" />
+      @create-note="showCreateForm = true" />
 
     <NoteCreateForm 
       :show="showCreateForm"
@@ -47,19 +46,6 @@
       @project-updated="handleProjectUpdated" />
 
 
-    <!-- Search Modal -->
-    <SimpleModal
-      v-if="showSearchModal"
-      :show="showSearchModal"
-      title="Rechercher des notes"
-      icon="fas fa-search"
-      size="lg"
-      @close="showSearchModal = false"
-    >
-      <SearchForm
-        @note-selected="handleNoteSelected"
-      />
-    </SimpleModal>
   </div>
 </template>
 
@@ -69,7 +55,6 @@ import NotesHeader from './NotesHeader.vue'
 import NoteCreateForm from './NoteCreateForm.vue'
 import NotesGrid from './NotesGrid.vue'
 import SimpleModal from './SimpleModal.vue'
-import SearchForm from './SearchForm.vue'
 
 export default {
   name: 'NotesList',
@@ -77,8 +62,7 @@ export default {
     NotesHeader,
     NoteCreateForm,
     NotesGrid,
-    SimpleModal,
-    SearchForm
+    SimpleModal
   },
   props: {
     projectId: {
@@ -92,7 +76,6 @@ export default {
       loading: false,
       error: null,
       showCreateForm: false,
-      showSearchModal: false,
       projects: [],
       newNote: {
         title: '',
@@ -250,10 +233,6 @@ export default {
     },
 
 
-    handleNoteSelected(note) {
-      this.showSearchModal = false
-      this.$router.push(`/notes/${note.note_id}`)
-    }
   }
 }
 </script>
