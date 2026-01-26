@@ -61,3 +61,7 @@ temp/
 
 # Exclude nested git repositories
 # memory-login/
+# Claude AI files
+CLAUDE.md
+.claude/
+*.claude
