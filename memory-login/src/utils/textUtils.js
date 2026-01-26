@@ -6,7 +6,3 @@ export function stripHtmlAndTruncate(content, maxLength = 150) {
   return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
 }
 
-export function stripHtml(content) {
-  if (!content) return ''
-  return content.replace(/<[^>]*>/g, '').trim()
-}
