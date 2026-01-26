@@ -7,7 +7,6 @@ const noteRoutes = require('./routes/noteRoutes');
 const userRoutes = require('./routes/userRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const tagRoutes = require('./routes/tagRoutes');
-const shareRoutes = require('./routes/shareRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const pool = require('./config/db');
 
@@ -36,7 +35,6 @@ app.use('/api/notes', noteRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tags', tagRoutes);
-app.use('/api/share', shareRoutes);
 app.use('/api/comments', commentRoutes);
 
 app.listen(port, () => {

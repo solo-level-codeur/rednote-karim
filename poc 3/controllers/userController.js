@@ -1,13 +1,13 @@
 const { createUser, findUserByEmail, matchPassword, getUserById, getAllUsers, updateUserRole, deleteUser, updateUserProfile, getUserProfileWithStats } = require('../models/userModel');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
-// Inscription d'un nouvel utilisateur
+// Création d'un nouvel utilisateur (admin seulement)
 const registerUser = async (req, res) => {
   const { firstname, lastname, email, password, telephone, description, roleId } = req.body;
   const finalRoleId = roleId || 3;
   const finalTelephone = telephone || '';
   const finalDescription = description || '';
-
 
   try {
     const userExists = await findUserByEmail(email);
@@ -15,16 +15,10 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'Utilisateur déjà existant' });
     }
 
-    const userId = await createUser(firstname, lastname, email, password, finalTelephone, finalDescription, finalRoleId);
-    const token = generateToken(userId, finalRoleId);
+    // Hacher le mot de passe
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Définir le cookie httpOnly
-    res.cookie('authToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS en production
-      sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 jours
-    });
+    const userId = await createUser(firstname, lastname, email, hashedPassword, finalTelephone, finalDescription, finalRoleId);
 
     res.status(201).json({
       id: userId,
@@ -32,6 +26,7 @@ const registerUser = async (req, res) => {
       lastname,
       email,
       role_id: finalRoleId,
+      message: 'Utilisateur créé avec succès'
     });
   } catch (error) {
     console.error('Erreur Register:', error);
@@ -41,7 +36,7 @@ const registerUser = async (req, res) => {
     }
     
     res.status(500).json({ 
-      message: 'Erreur lors de l\'inscription',
+      message: 'Erreur lors de la création de l\'utilisateur',
       ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }

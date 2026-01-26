@@ -1,32 +1,19 @@
 const db = require('../config/db');
 
-// Obtenir toutes les notes d'un utilisateur + notes des projets où il est membre (compatible schema memo)
+// Obtenir toutes les notes d'un utilisateur
 const getAllNotes = async (userId) => {
   const [rows] = await db.query(`
-    SELECT DISTINCT 
-      notes.note_id, 
-      notes.title, 
-      notes.content, 
-      notes.user_id, 
-      notes.project_id, 
-      notes.created_at, 
-      notes.updated_at,
-      CASE WHEN notes.user_id = ? THEN 'owner' ELSE 'shared' END as note_role,
-      projects.project_name,
-      users.firstname as author_firstname,
-      users.lastname as author_lastname
+    SELECT 
+      note_id, 
+      title, 
+      content, 
+      user_id, 
+      created_at, 
+      updated_at
     FROM notes 
-    LEFT JOIN projects ON notes.project_id = projects.project_id
-    LEFT JOIN users ON notes.user_id = users.user_id
-    WHERE notes.user_id = ?
-    OR (notes.project_id IN (
-      SELECT DISTINCT projects_sub.project_id 
-      FROM projects projects_sub
-      LEFT JOIN project_members ON projects_sub.project_id = project_members.project_id
-      WHERE projects_sub.user_id = ? OR project_members.user_id = ?
-    ))
-    ORDER BY notes.updated_at DESC
-  `, [userId, userId, userId, userId]);
+    WHERE user_id = ?
+    ORDER BY updated_at DESC
+  `, [userId]);
   return rows;
 };
 
@@ -82,32 +69,8 @@ const getNoteById = async (id, userId, isAdminAccess = false) => {
   return rows[0];
 };
 
-// Créer une nouvelle note (compatible schema memo)
+// Créer une nouvelle note
 const createNote = async (title, content, userId, projectId = null) => {
-  // Si aucun projectId, créer ou récupérer projet par défaut
-  if (!projectId) {
-    try {
-      const [defaultProject] = await db.query(
-        'SELECT project_id FROM projects WHERE project_name = "Projet par défaut" AND user_id = ? LIMIT 1',
-        [userId]
-      );
-      
-      if (defaultProject.length === 0) {
-        // Créer projet par défaut
-        const [projectResult] = await db.query(
-          'INSERT INTO projects (project_name, description, start_date, user_id) VALUES (?, ?, CURDATE(), ?)',
-          ['Projet par défaut', 'Notes personnelles', userId]
-        );
-        projectId = projectResult.insertId;
-      } else {
-        projectId = defaultProject[0].project_id;
-      }
-    } catch (error) {
-      console.error('Erreur création projet par défaut:', error);
-      throw error;
-    }
-  }
-
   const [result] = await db.query(
     'INSERT INTO notes (title, content, user_id, project_id) VALUES (?, ?, ?, ?)', 
     [title, content, userId, projectId]

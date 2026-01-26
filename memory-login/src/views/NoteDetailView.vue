@@ -26,15 +26,6 @@
           </div>
           
           <div class="d-flex align-items-center gap-2">
-            <!-- Bouton permissions/partage -->
-            <button 
-              v-if="canManageNote"
-              class="btn btn-outline-info btn-sm"
-              @click="showShareModal = true"
-            >
-              <i class="fas fa-users"></i> Gestion des droits
-            </button>
-            
             <!-- Bouton commentaires -->
             <button 
               class="btn btn-outline-primary btn-sm"
@@ -144,21 +135,6 @@
       </div>
     </main>
 
-    <!-- Modal de gestion des droits -->
-    <SimpleModal
-      v-if="showShareModal && note"
-      :show="showShareModal"
-      :title="`Partager : ${note.title}`"
-      icon="fas fa-share-alt"
-      size="lg"
-      @close="showShareModal = false"
-    >
-      <ShareForm
-        :noteId="note.note_id"
-        @shared="handleNoteShared"
-        @share-removed="handleShareRemoved"
-      />
-    </SimpleModal>
   </div>
 </template>
 
@@ -166,7 +142,6 @@
 // Sidebar est maintenant un composant global (voir main.js)
 import CommentsSection from '../components/CommentsSection.vue'
 import SimpleModal from '../components/SimpleModal.vue'
-import ShareForm from '../components/ShareForm.vue'
 import TagSelector from '../components/TagSelector.vue'
 import SimpleEditorToolbar from '../components/SimpleEditorToolbar.vue'
 import { notesAPI, projectsAPI } from '../services/api'
@@ -180,7 +155,6 @@ export default {
   components: {
     CommentsSection,
     SimpleModal,
-    ShareForm,
     TagSelector,
     SimpleEditorToolbar
   },
@@ -191,7 +165,6 @@ export default {
       error: null,
       isEditing: false,
       showComments: false,
-      showShareModal: false,
       commentsCount: 0,
       editor: null,
       originalContent: '',
@@ -371,13 +344,6 @@ export default {
       })
     },
 
-    handleNoteShared() {
-      this.showShareModal = false
-    },
-
-    handleShareRemoved() {
-      this.showShareModal = false
-    },
 
     async loadProjects() {
       try {

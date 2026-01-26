@@ -4,7 +4,7 @@ const { registerUser, loginUser, logoutUser, getUserProfile, getUsersAdmin, upda
 const { protect } = require('../middlewares/authMiddleware');
 const { can } = require('../middlewares/rbacMiddleware'); // NOUVEAU RBAC
 
-router.post('/register', registerUser);
+router.post('/register', protect, can('manage_users'), registerUser);
 router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 router.get('/profile', protect, getUserProfile);

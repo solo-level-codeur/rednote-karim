@@ -1,15 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
-import DashboardView from '../views/DashboardView.vue'
 import HomeView from '../views/HomeView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import NotesView from '../views/NotesView.vue'
 import ProjectsView from '../views/ProjectsView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import AdminUsersView from '../views/AdminUsersView.vue'
-import SharedNotesView from '../views/SharedNotesView.vue'
 import TagsView from '../views/TagsView.vue'
-import AllNotesView from '../views/AllNotesView.vue'
 import NoteDetailView from '../views/NoteDetailView.vue'
 import { authStore } from '../stores/auth'
 
@@ -27,12 +24,6 @@ const routes = [
     path: '/home',
     name: 'home',
     component: HomeView,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/dashboard', // Nouvelle route
-    name: 'dashboard',
-    component: DashboardView,
     meta: { requiresAuth: true }
   },
   {
@@ -80,21 +71,9 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
-    path: '/shared-notes',
-    name: 'shared-notes',
-    component: SharedNotesView,
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/tags',
     name: 'tags',
     component: TagsView,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/all-notes',
-    name: 'all-notes',
-    component: AllNotesView,
     meta: { requiresAuth: true }
   },
   {
@@ -122,12 +101,12 @@ router.beforeEach((to, from, next) => {
     next('/login')
   } else if (requiresAdmin && !authStore.isAdmin()) {
     // Seuls les admins peuvent accéder aux pages admin
-    next('/dashboard')
+    next('/home')
   } else if (to.name === 'login' && authStore.state.isAuthenticated) {
     next('/home')
   } else if (to.name === 'register' && authStore.state.isAuthenticated && !authStore.isAdmin()) {
     // Si connecté mais pas admin, rediriger
-    next('/dashboard')
+    next('/home')
   } else {
     next()
   }

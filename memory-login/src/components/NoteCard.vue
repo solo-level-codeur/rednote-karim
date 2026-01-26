@@ -29,12 +29,6 @@
             <i class="fas fa-edit"></i>
           </button>
           <button 
-            class="btn btn-outline-success" 
-            @click="showShareModal = true" 
-            title="Partager">
-            <i class="fas fa-share-alt"></i>
-          </button>
-          <button 
             class="btn btn-outline-info" 
             @click="showTagModal = true" 
             title="Gérer les tags">
@@ -65,20 +59,6 @@
     </div>
     
     <!-- Modals -->
-    <SimpleModal 
-      v-if="showShareModal"
-      :show="showShareModal"
-      :title="`Partager : ${note.title}`"
-      icon="fas fa-share-alt"
-      size="lg"
-      @close="showShareModal = false"
-    >
-      <ShareForm 
-        :noteId="note.note_id"
-        @shared="handleNoteShared"
-        @share-removed="handleShareRemoved"
-      />
-    </SimpleModal>
     
     <SimpleModal 
       v-if="showTagModal"
@@ -112,7 +92,6 @@
 
 <script>
 import { stripHtmlAndTruncate } from '../utils/textUtils'
-import ShareForm from './ShareForm.vue'
 import SimpleModal from './SimpleModal.vue'
 import TagSelector from './TagSelector.vue'
 import ProjectSelector from './ProjectSelector.vue'
@@ -120,7 +99,6 @@ import ProjectSelector from './ProjectSelector.vue'
 export default {
   name: 'NoteCard',
   components: {
-    ShareForm,
     SimpleModal,
     TagSelector,
     ProjectSelector
@@ -134,7 +112,6 @@ export default {
   emits: ['edit', 'delete', 'tags-updated', 'project-updated'],
   data() {
     return {
-      showShareModal: false,
       showTagModal: false,
       showProjectModal: false
     }
@@ -159,15 +136,6 @@ export default {
       this.$emit('project-updated', this.note.note_id, projectId)
     },
 
-    handleNoteShared() {
-      // La note a été partagée
-      this.showShareModal = false
-    },
-
-    handleShareRemoved() {
-      // Un partage a été révoqué
-      this.showShareModal = false
-    }
   }
 }
 </script>

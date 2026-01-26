@@ -73,14 +73,12 @@ const authorizeNoteOwner = async (req, res, next) => {
         LIMIT 1
       `, [note.project_id, userId, userId]);
 
-
       if (projectAccess.length > 0) {
         return next();
-      } else {
       }
     }
 
-    return res.status(403).json({ message: 'Accès refusé, vous n\'êtes pas le créateur de cette note' });
+    return res.status(403).json({ message: 'Accès refusé, vous n\'avez pas accès à cette note' });
   } catch (error) {
     console.error('Erreur lors de la vérification de l\'autorisation :', error);
     res.status(500).json({ message: 'Erreur du serveur' });

@@ -21,23 +21,9 @@
         </li>
         
         <li class="nav-item mb-1">
-          <router-link to="/dashboard" class="nav-link text-white" active-class="active">
-            <i class="fas fa-tachometer-alt me-2"></i>
-            Dashboard
-          </router-link>
-        </li>
-        
-        <li class="nav-item mb-1">
           <router-link to="/notes" class="nav-link text-white" active-class="active">
             <i class="fas fa-sticky-note me-2"></i>
             Notes
-          </router-link>
-        </li>
-        
-        <li class="nav-item mb-1">
-          <router-link to="/all-notes" class="nav-link text-white" active-class="active">
-            <i class="fas fa-list me-2"></i>
-            All Notes
           </router-link>
         </li>
         
@@ -62,12 +48,6 @@
           </router-link>
         </li>
         
-        <li class="nav-item mb-1">
-          <router-link to="/shared-notes" class="nav-link text-white" active-class="active">
-            <i class="fas fa-share-alt me-2"></i>
-            Notes Partagées
-          </router-link>
-        </li>
         
         <!-- Section Admin -->
         <li v-if="isAdmin" class="nav-item mb-1 mt-3">
