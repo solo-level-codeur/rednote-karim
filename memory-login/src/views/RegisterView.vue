@@ -154,15 +154,32 @@ export default {
       selectedRole: '',
       loading: false,
       error: null,
-      showSuccess: false
+      showSuccess: false,
+      validationRules: {
+        name: /^[a-zA-Z\s'-]{2,30}$/,
+        email: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*\d)(?=.*[G$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+      }
     }
   },
   computed: {
+    isFirstnameValid() {
+      return this.validationRules.name.test(this.firstname)
+    },
+    isLastnameValid() {
+      return this.validationRules.name.test(this.lastname)
+    },
+    isEmailValid() {
+      return this.validationRules.email.test(this.email)
+    },
+    isPasswordValid() {
+      return this.validationRules.password.test(this.password)
+    },
     isFormValid() {
-      return this.firstname && 
-             this.lastname &&
-             this.email && 
-             this.password && 
+      return this.isFirstnameValid && 
+             this.isLastnameValid &&
+             this.isEmailValid && 
+             this.isPasswordValid && 
              this.confirmPassword && 
              this.selectedRole &&
              this.password === this.confirmPassword

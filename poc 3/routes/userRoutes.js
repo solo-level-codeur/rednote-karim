@@ -3,8 +3,9 @@ const router = express.Router();
 const { registerUser, loginUser, logoutUser, getUserProfile, getUsersAdmin, updateUserRoleAdmin, deleteUserAdmin, getUserProfileWithStatsController, updateUserProfileController } = require('../controllers/userController');
 const { protect } = require('../middlewares/authMiddleware');
 const { can } = require('../middlewares/rbacMiddleware'); // NOUVEAU RBAC
+const { validateRegister } = require('../middlewares/validationMiddleware');
 
-router.post('/register', protect, can('manage_users'), registerUser);
+router.post('/register', protect, can('manage_users'), validateRegister, registerUser);
 router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 router.get('/profile', protect, getUserProfile);
