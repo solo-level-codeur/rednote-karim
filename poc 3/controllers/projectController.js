@@ -89,10 +89,8 @@ const deleteProjectController = async (req, res) => {
     
     const success = await deleteProject(id, userId, isAdminRequest);
     if (!success) {
-      console.log(`❌ Projet ${id} non trouvé pour suppression`);
       return res.status(404).json({ message: 'Projet non trouvé' });
     }
-    console.log(`✅ Projet ${id} supprimé avec succès`);
     res.json({ message: 'Projet supprimé avec succès' });
   } catch (error) {
     console.error('Erreur lors de la suppression du projet :', error);
@@ -128,7 +126,7 @@ const removeProjectMemberController = async (req, res) => {
 
   try {
     // Admin peut retirer tout membre
-    const isAdminRequest = await hasPermission(userId, 'manage_users');
+    const isAdminRequest = await hasPermission(requesterId, 'manage_users');
     const success = await removeProjectMember(projectId, userId, requesterId, isAdminRequest);
     if (!success) {
       return res.status(404).json({ message: 'Membre non trouvé dans le projet' });

@@ -2,19 +2,35 @@ const db = require('../config/db');
 
 // Obtenir toutes les notes d'un utilisateur
 const getAllNotes = async (userId) => {
-  const [rows] = await db.query(`
+  // Récupérer les notes
+  const [notes] = await db.query(`
     SELECT 
-      note_id, 
-      title, 
-      content, 
-      user_id, 
-      created_at, 
-      updated_at
-    FROM notes 
-    WHERE user_id = ?
-    ORDER BY updated_at DESC
+      notes.note_id, 
+      notes.title, 
+      notes.content, 
+      notes.user_id,
+      notes.project_id, 
+      notes.created_at, 
+      notes.updated_at
+    FROM notes
+    WHERE notes.user_id = ?
+    ORDER BY notes.updated_at DESC
   `, [userId]);
-  return rows;
+  
+  // Pour chaque note, récupérer ses tags
+  for (let note of notes) {
+    const [tags] = await db.query(`
+      SELECT 
+        tags.tag_id as id, 
+        tags.tag_name as name
+      FROM note_tags
+      JOIN tags ON note_tags.tag_id = tags.tag_id
+      WHERE note_tags.note_id = ?
+    `, [note.note_id]);
+    note.tags = tags;
+  }
+  
+  return notes;
 };
 
 // Obtenir toutes les notes d'un projet (compatible schema memo)
@@ -35,7 +51,7 @@ const getAllNotesFromProject = async (projectId, userId, isAdminAccess = false) 
   }
   
   // Récupérer les notes du projet avec informations auteur
-  const [rows] = await db.query(`
+  const [notes] = await db.query(`
     SELECT 
       notes.note_id, 
       notes.title, 
@@ -55,7 +71,20 @@ const getAllNotesFromProject = async (projectId, userId, isAdminAccess = false) 
     ORDER BY notes.updated_at DESC
   `, [userId, projectId]);
   
-  return rows;
+  // Pour chaque note, récupérer ses tags
+  for (let note of notes) {
+    const [tags] = await db.query(`
+      SELECT 
+        tags.tag_id as id, 
+        tags.tag_name as name
+      FROM note_tags
+      JOIN tags ON note_tags.tag_id = tags.tag_id
+      WHERE note_tags.note_id = ?
+    `, [note.note_id]);
+    note.tags = tags;
+  }
+  
+  return notes;
 };
 
 // Obtenir une note spécifique (compatible schema memo)
@@ -66,6 +95,20 @@ const getNoteById = async (id, userId, isAdminAccess = false) => {
     'SELECT note_id, title, content, user_id, project_id, created_at, updated_at FROM notes WHERE note_id = ?', 
     [id]
   );
+  
+  if (rows[0]) {
+    // Récupérer les tags de cette note
+    const [tags] = await db.query(`
+      SELECT 
+        tags.tag_id as id, 
+        tags.tag_name as name
+      FROM note_tags
+      JOIN tags ON note_tags.tag_id = tags.tag_id
+      WHERE note_tags.note_id = ?
+    `, [id]);
+    rows[0].tags = tags;
+  }
+  
   return rows[0];
 };
 

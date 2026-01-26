@@ -74,12 +74,15 @@
                     <!-- Tags Bootstrap -->
                     <div v-if="note.tags && note.tags.length > 0" class="d-flex gap-1">
                       <span 
-                        v-for="tag in note.tags.slice(0, 2)" 
+                        v-for="tag in note.tags.slice(0, 3)" 
                         :key="tag.id"
-                        class="badge rounded-pill"
-                        :style="{ backgroundColor: tag.color, fontSize: '0.7rem' }"
+                        class="badge bg-secondary rounded-pill"
+                        style="font-size: 0.75rem"
                       >
                         {{ tag.name }}
+                      </span>
+                      <span v-if="note.tags.length > 3" class="badge bg-light text-dark rounded-pill" style="font-size: 0.75rem">
+                        +{{ note.tags.length - 3 }}
                       </span>
                     </div>
                   </div>

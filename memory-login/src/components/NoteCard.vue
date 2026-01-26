@@ -49,7 +49,18 @@
         </div>
       </div>
       
-      <div class="card-text text-muted mb-0" v-html="getPreview(note.content)"></div>
+      <div class="card-text text-muted mb-3" v-html="getPreview(note.content)"></div>
+      
+      <!-- Affichage des tags -->
+      <div v-if="note.tags && note.tags.length > 0" class="mb-2">
+        <span 
+          v-for="tag in note.tags" 
+          :key="tag.id"
+          class="badge bg-secondary me-1"
+        >
+          {{ tag.name }}
+        </span>
+      </div>
     </div>
     
     <div class="card-footer bg-transparent border-0">
