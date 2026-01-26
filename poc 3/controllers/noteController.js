@@ -22,7 +22,7 @@ const createNoteController = async (req, res) => {
       title, 
       content, 
       userId, 
-      projectId: projectId || 'auto-créé',
+      projectId,
       type: noteType,
       message: message
     });
