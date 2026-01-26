@@ -46,11 +46,6 @@ export const notesAPI = {
     if (projectId) params.append('projectId', projectId)
     return api.get(`/notes/search?${params}`)
   },
-  getFilteredNotes: (filters) => {
-    const params = new URLSearchParams(filters)
-    return api.get(`/notes/filter?${params}`)
-  },
-  getAllAccessibleNotes: () => api.get('/share/accessible')
 }
 
 export const projectsAPI = {
@@ -85,7 +80,6 @@ export const shareAPI = {
   updateSharePermission: (noteId, userId, permissionData) => api.put(`/share/note/${noteId}/user/${userId}`, permissionData),
   getSharedNotes: () => api.get('/share/notes'),
   getNoteShares: (noteId) => api.get(`/share/note/${noteId}`),
-  getAllAccessibleNotesByProject: (projectId) => api.get(`/share/accessible/project/${projectId}`)
 }
 
 export const commentsAPI = {
@@ -94,7 +88,6 @@ export const commentsAPI = {
   getComment: (commentId) => api.get(`/comments/${commentId}`),
   updateComment: (commentId, commentData) => api.put(`/comments/${commentId}`, commentData),
   deleteComment: (commentId) => api.delete(`/comments/${commentId}`),
-  getRecentComments: (limit = 10) => api.get(`/comments/recent?limit=${limit}`)
 }
 
 export const profileAPI = {
