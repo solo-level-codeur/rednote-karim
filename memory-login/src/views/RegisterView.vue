@@ -8,8 +8,8 @@
             <h1 class="h4 mb-0 text-primary">Administration Utilisateurs</h1>
           </div>
           <div class="col-auto">
-            <router-link to="/dashboard" class="btn btn-outline-secondary">
-              Retour Dashboard
+            <router-link to="/home" class="btn btn-outline-secondary">
+              Retour Home
             </router-link>
           </div>
         </div>
@@ -196,7 +196,7 @@ export default {
         this.resetForm()
         
         setTimeout(() => {
-          this.$router.push('/dashboard')
+          this.$router.push('/home')
         }, 2000)
       } catch (error) {
         this.error = error.response?.data?.message || 'Erreur lors de l\'inscription'

@@ -276,10 +276,10 @@ export default {
     }
   },
   async mounted() {
-    await this.loadDashboardData()
+    await this.loadHomeData()
   },
   methods: {
-    async loadDashboardData() {
+    async loadHomeData() {
       this.loading = true
       
       try {
@@ -306,9 +306,9 @@ export default {
         // Données d'activité pour le graphique
         this.activityData = this.generateActivityData(notes)
 
-        console.log('📊 Dashboard chargé:', this.stats)
+        console.log('📊 Home chargé:', this.stats)
       } catch (error) {
-        console.error('❌ Erreur dashboard:', error)
+        console.error('❌ Erreur home:', error)
       } finally {
         this.loading = false
       }

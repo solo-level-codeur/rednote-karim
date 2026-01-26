@@ -78,7 +78,7 @@ export default {
 
         authStore.login(response.data)
         
-        this.$router.push('/dashboard')
+        this.$router.push('/home')
       } catch (error) {
         console.error('Erreur de connexion:', error)
         this.error = error.response?.data?.message || 'Erreur de connexion'

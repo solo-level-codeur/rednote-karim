@@ -150,8 +150,8 @@ const getProjectMembersController = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    // Admin peut accéder à tous les projets
-    const isAdminAccess = await hasPermission(userId, 'manage_users');
+    // Admin ou Manager peuvent accéder aux membres des projets
+    const isAdminAccess = await hasPermission(userId, 'manage_users') || await hasPermission(userId, 'view_users');
     const members = await getProjectMembers(projectId, userId, isAdminAccess);
     res.json({
       projectId,
