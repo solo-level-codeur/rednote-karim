@@ -128,35 +128,6 @@ const canCommentNote = async (noteId, userId) => {
   return { canComment: false, isOwner: false };
 };
 
-// Obtenir les commentaires récents d'un utilisateur
-const getRecentComments = async (userId, limit = 10) => {
-  const [rows] = await db.query(`
-    SELECT 
-      comments.comment_id,
-      comments.comment_text,
-      comments.created_at,
-      comments.note_id,
-      comments.user_id,
-      notes.title as note_title,
-      notes.user_id as note_owner_id
-    FROM comments 
-    INNER JOIN notes ON comments.note_id = notes.note_id
-    WHERE comments.user_id = ?
-    ORDER BY comments.created_at DESC
-    LIMIT ?
-  `, [userId, limit]);
-  return rows;
-};
-
-// Compter les commentaires d'une note
-const getCommentCount = async (noteId) => {
-  const [rows] = await db.query(`
-    SELECT COUNT(*) as count 
-    FROM comments 
-    WHERE note_id = ?
-  `, [noteId]);
-  return rows[0].count;
-};
 
 module.exports = {
   createComment,
@@ -164,7 +135,5 @@ module.exports = {
   getCommentById,
   updateComment,
   deleteComment,
-  canCommentNote,
-  getRecentComments,
-  getCommentCount
+  canCommentNote
 };

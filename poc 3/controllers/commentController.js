@@ -5,8 +5,6 @@ const {
   updateComment,
   deleteComment,
   canCommentNote,
-  getRecentComments,
-  getCommentCount
 } = require('../models/commentModel');
 
 // Créer un commentaire
@@ -54,11 +52,10 @@ const getCommentsController = async (req, res) => {
     }
 
     const comments = await getCommentsByNote(noteId);
-    const count = await getCommentCount(noteId);
 
     res.json({
       noteId,
-      count,
+      count: comments.length,
       comments
     });
   } catch (error) {
@@ -67,29 +64,6 @@ const getCommentsController = async (req, res) => {
   }
 };
 
-// Obtenir un commentaire spécifique
-const getCommentController = async (req, res) => {
-  const { commentId } = req.params;
-  const userId = req.user.id;
-
-  try {
-    const comment = await getCommentById(commentId);
-    if (!comment) {
-      return res.status(404).json({ message: 'Commentaire non trouvé' });
-    }
-
-    // Vérifier si l'utilisateur peut voir cette note
-    const access = await canCommentNote(comment.note_id, userId);
-    if (!access.canComment) {
-      return res.status(403).json({ message: 'Vous n\'êtes pas autorisé à voir ce commentaire' });
-    }
-
-    res.json(comment);
-  } catch (error) {
-    console.error('Erreur lors de la récupération du commentaire :', error);
-    res.status(500).json({ message: 'Erreur du serveur' });
-  }
-};
 
 // Mettre à jour un commentaire
 const updateCommentController = async (req, res) => {
@@ -138,28 +112,10 @@ const deleteCommentController = async (req, res) => {
   }
 };
 
-// Obtenir les commentaires récents de l'utilisateur
-const getRecentCommentsController = async (req, res) => {
-  const userId = req.user.id;
-  const limit = parseInt(req.query.limit) || 10;
-
-  try {
-    const comments = await getRecentComments(userId, limit);
-    res.json({
-      count: comments.length,
-      comments
-    });
-  } catch (error) {
-    console.error('Erreur lors de la récupération des commentaires récents :', error);
-    res.status(500).json({ message: 'Erreur du serveur' });
-  }
-};
 
 module.exports = {
   createCommentController,
   getCommentsController,
-  getCommentController,
   updateCommentController,
-  deleteCommentController,
-  getRecentCommentsController
+  deleteCommentController
 };
