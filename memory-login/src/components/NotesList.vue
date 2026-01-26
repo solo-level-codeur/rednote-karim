@@ -54,6 +54,7 @@ import { notesAPI, projectsAPI, tagsAPI, shareAPI } from '../services/api'
 import NotesHeader from './NotesHeader.vue'
 import NoteCreateForm from './NoteCreateForm.vue'
 import NotesGrid from './NotesGrid.vue'
+import SimpleModal from './SimpleModal.vue'
 
 export default {
   name: 'NotesList',

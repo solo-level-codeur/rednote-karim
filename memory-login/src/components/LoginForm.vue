@@ -90,3 +90,6 @@ export default {
 }
 </script>
 
+<style scoped>
+/* Aucun CSS personnalisé - 100% Bootstrap */
+</style>

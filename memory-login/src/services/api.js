@@ -71,6 +71,9 @@ export const tagsAPI = {
 
 export const shareAPI = {
   shareNote: (noteId, shareData) => api.post(`/share/note/${noteId}`, shareData),
+  unshareNote: (noteId, userId) => api.delete(`/share/note/${noteId}/user/${userId}`),
+  updateSharePermission: (noteId, userId, permissionData) => api.put(`/share/note/${noteId}/user/${userId}`, permissionData),
+  getSharedNotes: () => api.get('/share/notes'),
   getNoteShares: (noteId) => api.get(`/share/note/${noteId}`),
 }
 
