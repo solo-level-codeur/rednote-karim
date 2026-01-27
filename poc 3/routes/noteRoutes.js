@@ -5,10 +5,6 @@ const { registerUser, loginUser, getUserProfile } = require('../controllers/user
 const { protect, authorizeNoteOwner, authorizeNoteEdit, authorizeNoteDelete } = require('../middlewares/authMiddleware');
 const { can } = require('../middlewares/rbacMiddleware');
 
-// Routes utilisateur
-router.post('/register', registerUser);
-router.post('/login', loginUser);
-router.get('/profile', protect, getUserProfile);
 
 // Route pour récupérer toutes les notes (protégée)
 router.get('/', protect, getAllNotesController);

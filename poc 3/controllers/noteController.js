@@ -9,22 +9,12 @@ const createNoteController = async (req, res) => {
   try {
     const noteId = await createNote(title, content, userId, projectId);
     
-    let message = 'Note créée avec succès';
-    let noteType = 'Note de projet';
-    
-    if (!projectId) {
-      message = 'Note créée avec succès dans votre projet par défaut';
-      noteType = 'Note personnelle';
-    }
-    
     res.status(201).json({ 
       id: noteId, 
       title, 
       content, 
       userId, 
-      projectId,
-      type: noteType,
-      message: message
+      projectId
     });
   } catch (error) {
     console.error('Erreur lors de la création de la note :', error);

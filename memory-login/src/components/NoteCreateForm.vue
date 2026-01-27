@@ -7,7 +7,6 @@
   Props:
   - show: Boolean - Afficher/masquer le formulaire
   - loading: Boolean - État de chargement
-  - newNote: Object - Données {title, content}
   
   Events:
   - @create - Données de la note à créer
@@ -26,7 +25,7 @@
       <div class="mb-3">
         <input 
           class="form-control form-control-lg" 
-          v-model="localNote.title" 
+          v-model="title" 
           type="text" 
           placeholder="Donnez un titre à votre note..."
           :disabled="loading">
@@ -34,7 +33,7 @@
       
       <div class="mb-3">
         <TiptapEditor 
-          v-model="localNote.content" 
+          v-model="content" 
           :disabled="loading" />
       </div>
 
@@ -62,7 +61,7 @@
       <button 
         class="btn btn-primary btn-lg d-flex align-items-center"
         @click="handleCreate"
-        :disabled="loading || !localNote.title || !localNote.content">
+        :disabled="loading || !title || !content">
         <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
         <span class="me-2">🚀</span>
         Créer la note
@@ -100,34 +99,23 @@ export default {
     loading: {
       type: Boolean,
       default: false
-    },
-    newNote: {
-      type: Object,
-      default: () => ({ title: '', content: '' })
     }
   },
   emits: ['create', 'cancel'],
   data() {
     return {
+      title: '',
+      content: '',
       selectedTags: [],
       selectedProject: null
     }
   },
-  computed: {
-    localNote: {
-      get() {
-        return this.newNote
-      },
-      set(value) {
-        this.$emit('update:newNote', value)
-      }
-    }
-  },
   methods: {
     handleCreate() {
-      if (this.localNote.title && this.localNote.content) {
+      if (this.title && this.content) {
         const noteData = {
-          ...this.localNote,
+          title: this.title,
+          content: this.content,
           tags: this.selectedTags,
           projectId: this.selectedProject
         }
@@ -135,10 +123,22 @@ export default {
       }
     },
     handleCancel() {
-      // Reset all form data
+      this.resetForm()
+      this.$emit('cancel')
+    },
+    resetForm() {
+      this.title = ''
+      this.content = ''
       this.selectedTags = []
       this.selectedProject = null
-      this.$emit('cancel')
+    }
+  },
+  
+  watch: {
+    show(newValue) {
+      if (!newValue) {
+        this.resetForm()
+      }
     }
   }
 }

@@ -10,7 +10,7 @@
   - NotesGrid (layout) - Grille des notes
   
   État global:
-  - notes, loading, error, showCreateForm, newNote
+  - notes, loading, error, showCreateForm
   
   Méthodes API:
   - fetchNotes(), createNote(), deleteNote()
@@ -25,7 +25,6 @@
     <NoteCreateForm 
       :show="showCreateForm"
       :loading="loading"
-      :newNote="newNote"
       @create="createNote"
       @cancel="cancelCreate" />
 
@@ -50,7 +49,7 @@
 </template>
 
 <script>
-import { notesAPI, projectsAPI, tagsAPI, shareAPI } from '../services/api'
+import { notesAPI, projectsAPI, tagsAPI } from '../services/api'
 import NotesHeader from './NotesHeader.vue'
 import NoteCreateForm from './NoteCreateForm.vue'
 import NotesGrid from './NotesGrid.vue'
@@ -74,11 +73,7 @@ export default {
       loading: false,
       error: null,
       showCreateForm: false,
-      projects: [],
-      newNote: {
-        title: '',
-        content: ''
-      }
+      projects: []
     }
   },
   async mounted() {
@@ -157,20 +152,6 @@ export default {
           }
         }
         
-        // Partager la note si demandé
-        if (noteData.shareSettings?.shouldShare && noteData.shareSettings?.shareEmail) {
-          try {
-            await shareAPI.shareNote(createdNote.id, {
-              email: noteData.shareSettings.shareEmail,
-              permission: 'read' // Permission par défaut
-            })
-          } catch (shareError) {
-            console.error('Erreur lors du partage:', shareError)
-            // Ne pas faire échouer la création pour une erreur de partage
-          }
-        }
-        
-        this.newNote = { title: '', content: '' }
         this.showCreateForm = false
         await this.fetchNotes()
       } catch (error) {
@@ -184,7 +165,6 @@ export default {
 
     cancelCreate() {
       this.showCreateForm = false
-      this.newNote = { title: '', content: '' }
     },
 
 
