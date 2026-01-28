@@ -1,3 +1,4 @@
+
 <!--
   NotesList.vue
   
@@ -10,7 +11,7 @@
   - NotesGrid (layout) - Grille des notes
   
   État global:
-  - notes, loading, error, showCreateForm
+  - notes, loading, error, showCreateForm, newNote
   
   Méthodes API:
   - fetchNotes(), createNote(), deleteNote()
@@ -23,11 +24,11 @@
       @create-note="showCreateForm = true" />
 
     <NoteCreateForm 
-      :show="showCreateForm"
-      :loading="loading"
-      :projectId="projectId"
-      @create="createNote"
-      @cancel="cancelCreate" />
+  :show="showCreateForm"
+  :loading="loading"
+  :projectId="projectId"
+  @create="createNote"
+  @cancel="cancelCreate" />
 
     <!-- ============================================ -->
     <!-- SECTION 3: GESTION D'ÉTAT - Reste dans NotesList.vue -->
@@ -50,17 +51,19 @@
 </template>
 
 <script>
-import { notesAPI, projectsAPI, tagsAPI } from '../services/api'
+import { notesAPI, tagsAPI, shareAPI } from '../services/api'
 import NotesHeader from './NotesHeader.vue'
 import NoteCreateForm from './NoteCreateForm.vue'
 import NotesGrid from './NotesGrid.vue'
+import SimpleModal from './SimpleModal.vue'
 
 export default {
   name: 'NotesList',
   components: {
     NotesHeader,
     NoteCreateForm,
-    NotesGrid
+    NotesGrid,
+    SimpleModal
   },
   props: {
     projectId: {
@@ -74,12 +77,14 @@ export default {
       loading: false,
       error: null,
       showCreateForm: false,
-      projects: []
+      newNote: {
+        title: '',
+        content: ''
+      }
     }
   },
   async mounted() {
     await this.fetchNotes()
-    await this.loadProjects()
   },
   watch: {
     // Recharger les notes quand on change de projet
@@ -127,10 +132,8 @@ export default {
       if (!noteData.title || !noteData.content) {
         return
       }
-
       this.loading = true
       this.error = null
-
       try {
         // Créer la note avec les données de base
         const basicNoteData = {
@@ -138,7 +141,6 @@ export default {
           content: noteData.content,
           projectId: noteData.projectId || null
         }
-        
         const noteResponse = await notesAPI.createNote(basicNoteData)
         const createdNote = noteResponse.data
         
@@ -149,10 +151,24 @@ export default {
               await tagsAPI.addTagToNote(createdNote.id, tag.id)
             } catch (tagError) {
               console.error('Erreur lors de l\'ajout du tag:', tagError)
-            }
+            }3
           }
         }
         
+        // Partager la note si demandé
+        if (noteData.shareSettings?.shouldShare && noteData.shareSettings?.shareEmail) {
+          try {
+            await shareAPI.shareNote(createdNote.id, {
+              email: noteData.shareSettings.shareEmail,
+              permission: 'read' // Permission par défaut
+            })
+          } catch (shareError) {
+            console.error('Erreur lors du partage:', shareError)
+            // Ne pas faire échouer la création pour une erreur de partage
+          }
+        }
+        
+        this.newNote = { title: '', content: '' }
         this.showCreateForm = false
         await this.fetchNotes()
       } catch (error) {
@@ -166,6 +182,7 @@ export default {
 
     cancelCreate() {
       this.showCreateForm = false
+      this.newNote = { title: '', content: '' }
     },
 
 
@@ -202,14 +219,6 @@ export default {
       // ou rafraîchir les données si nécessaire
     },
 
-    async loadProjects() {
-      try {
-        const response = await projectsAPI.getAllProjects()
-        this.projects = response.data
-      } catch (error) {
-        console.error('Erreur lors du chargement des projets:', error)
-      }
-    },
 
 
   }

@@ -7,10 +7,16 @@
   Props:
   - show: Boolean - Afficher/masquer le formulaire
   - loading: Boolean - État de chargement
+  - projectId: String/Number - ID du projet (automatique selon l'URL)
   
   Events:
   - @create - Données de la note à créer
   - @cancel - Annulation du formulaire
+  
+  SIMPLIFIÉ:
+  - Pas de choix de projet à la création
+  - /notes → Note personnelle (projectId = null)
+  - /projects/X/notes → Note dans le projet X (automatique)
 -->
 <template>
   <div v-if="show" class="card mb-4 shadow-sm">
@@ -18,6 +24,10 @@
       <h3 class="h5 mb-0 d-flex align-items-center">
         <span class="me-2 fs-4">✍️</span>
         Créer une nouvelle note
+        <span v-if="projectId" class="badge bg-secondary ms-2">
+          <i class="fas fa-folder me-1"></i>
+          Dans ce projet
+        </span>
       </h3>
     </div>
     
@@ -37,59 +47,46 @@
           :disabled="loading" />
       </div>
 
-      <!-- Section avancée avec tags et projet -->
-      <div class="advanced-options mb-3">
-        <div class="row">
-          <div class="col-md-6">
-            <TagSelector
-              v-model="selectedTags"
-              :disabled="loading"
-            />
-          </div>
-          <div class="col-md-6">
-            <ProjectSelector
-              v-model="selectedProject"
-              :disabled="loading"
-            />
-          </div>
-        </div>
+      <!-- Section tags uniquement -->
+      <div class="mb-3">
+        <TagSelector
+          v-model="selectedTags"
+          :disabled="loading"
+        />
       </div>
     </div>
     
     <div class="card-footer bg-light d-flex justify-content-end align-items-center">
       <div class="d-flex gap-2">
-      <button 
-        class="btn btn-primary btn-lg d-flex align-items-center"
-        @click="handleCreate"
-        :disabled="loading || !title || !content">
-        <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-        <span class="me-2">🚀</span>
-        Créer la note
-      </button>
-      
-      <button 
-        class="btn btn-secondary btn-lg d-flex align-items-center"
-        @click="handleCancel">
-        <span class="me-2">❌</span>
-        Annuler
-      </button>
+        <button 
+          class="btn btn-primary btn-lg d-flex align-items-center"
+          @click="handleCreate"
+          :disabled="loading || !title || !content">
+          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+          <span class="me-2">🚀</span>
+          Créer la note
+        </button>
+        
+        <button 
+          class="btn btn-secondary btn-lg d-flex align-items-center"
+          @click="handleCancel">
+          <span class="me-2">❌</span>
+          Annuler
+        </button>
       </div>
     </div>
-
   </div>
 </template>
 
 <script>
 import TiptapEditor from './TiptapEditor.vue'
 import TagSelector from './TagSelector.vue'
-import ProjectSelector from './ProjectSelector.vue'
 
 export default {
   name: 'NoteCreateForm',
   components: {
     TiptapEditor,
-    TagSelector,
-    ProjectSelector
+    TagSelector
   },
   props: {
     show: {
@@ -110,8 +107,7 @@ export default {
     return {
       title: '',
       content: '',
-      selectedTags: [],
-      selectedProject: null
+      selectedTags: []
     }
   },
   methods: {
@@ -121,7 +117,7 @@ export default {
           title: this.title,
           content: this.content,
           tags: this.selectedTags,
-          projectId: this.selectedProject
+          projectId: this.projectId || null  // Automatique selon l'URL
         }
         this.$emit('create', noteData)
       }
@@ -134,20 +130,12 @@ export default {
       this.title = ''
       this.content = ''
       this.selectedTags = []
-      this.selectedProject = this.projectId  // ← Garde le projet si on est dans un projet
     }
   },
-  
   watch: {
     show(newValue) {
       if (!newValue) {
         this.resetForm()
-      }
-    },
-    projectId: {
-      immediate: true,
-      handler(newVal) {
-        this.selectedProject = newVal
       }
     }
   }
