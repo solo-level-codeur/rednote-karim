@@ -133,7 +133,7 @@ export default {
         this.projects = response.data
       } catch (error) {
         console.error('Erreur lors du chargement des projets:', error)
-        this.$toast.error('Erreur lors du chargement des projets')
+        console.error('Erreur lors du chargement des projets:', error)
       } finally {
         this.loading = false
       }
@@ -148,10 +148,10 @@ export default {
         try {
           await projectsAPI.deleteProject(projectId)
           this.projects = this.projects.filter(p => p.project_id !== projectId)
-          this.$toast.success('Projet supprimé avec succès')
+          console.log('Projet supprimé avec succès')
         } catch (error) {
           console.error('Erreur lors de la suppression:', error)
-          this.$toast.error('Erreur lors de la suppression du projet')
+          console.error('Erreur lors de la suppression du projet:', error)
         }
       }
     },
@@ -165,7 +165,7 @@ export default {
           if (index !== -1) {
             this.projects[index] = { ...this.projects[index], ...projectData }
           }
-          this.$toast.success('Projet modifié avec succès')
+          console.log('Projet modifié avec succès')
         } else {
           // Création
           const response = await projectsAPI.createProject({
@@ -200,11 +200,11 @@ export default {
             }
           }
           
-          this.$toast.success('Projet créé avec succès')
+          console.log('Projet créé avec succès')
         }
       } catch (error) {
         console.error('Erreur lors de la sauvegarde:', error)
-        this.$toast.error('Erreur lors de la sauvegarde du projet')
+        console.error('Erreur lors de la sauvegarde du projet:', error)
       }
       this.handleCancelProject()
     },
@@ -227,7 +227,7 @@ export default {
 
     handleError(message) {
       this.error = message
-      this.$toast?.error(message) || console.error(message)
+      console.error(message)
       // Effacer l'erreur après 5 secondes
       setTimeout(() => {
         this.error = null

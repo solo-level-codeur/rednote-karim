@@ -25,6 +25,7 @@
     <NoteCreateForm 
       :show="showCreateForm"
       :loading="loading"
+      :projectId="projectId"
       @create="createNote"
       @cancel="cancelCreate" />
 

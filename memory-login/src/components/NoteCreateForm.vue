@@ -99,6 +99,10 @@ export default {
     loading: {
       type: Boolean,
       default: false
+    },
+    projectId: {
+      type: [String, Number],
+      default: null
     }
   },
   emits: ['create', 'cancel'],
@@ -130,7 +134,7 @@ export default {
       this.title = ''
       this.content = ''
       this.selectedTags = []
-      this.selectedProject = null
+      this.selectedProject = this.projectId  // ← Garde le projet si on est dans un projet
     }
   },
   
@@ -138,6 +142,12 @@ export default {
     show(newValue) {
       if (!newValue) {
         this.resetForm()
+      }
+    },
+    projectId: {
+      immediate: true,
+      handler(newVal) {
+        this.selectedProject = newVal
       }
     }
   }
