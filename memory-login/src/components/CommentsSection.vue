@@ -2,8 +2,7 @@
   <div class="comments-section">
     <div class="comments-header d-flex justify-content-between align-items-center mb-3">
       <h6 class="mb-0">
-        <i class="fas fa-comments"></i> 
-        Commentaires ({{ comments.length }})
+        Commentaires
       </h6>
       <button 
         class="btn btn-sm btn-outline-primary"
@@ -45,8 +44,7 @@
       </div>
 
       <div v-else-if="comments.length === 0" class="text-center py-3">
-        <i class="fas fa-comment fa-2x text-muted mb-2"></i>
-        <p class="text-muted mb-0 small">Aucun commentaire pour le moment</p>
+        <p class="text-muted mb-0 small">Aucun commentaire</p>
       </div>
 
       <div v-else>
@@ -177,7 +175,7 @@ export default {
         
         // Si l'erreur est 403, c'est que l'utilisateur n'a pas accès
         if (error.response?.status !== 403) {
-          this.$toast.error('Erreur lors du chargement des commentaires')
+          console.error('Erreur lors du chargement des commentaires:', error)
         }
       } finally {
         this.loading = false
@@ -191,15 +189,15 @@ export default {
         })
         
         this.comments.push(response.data.comment)
-        this.$toast.success('Commentaire ajouté avec succès')
+        console.log('Commentaire ajouté avec succès')
         this.cancelAdd()
       } catch (error) {
         console.error('Erreur lors de la création du commentaire:', error)
         
         if (error.response?.status === 403) {
-          this.$toast.error('Vous n\'êtes pas autorisé à commenter cette note')
+          console.error('Vous n\'êtes pas autorisé à commenter cette note')
         } else {
-          this.$toast.error('Erreur lors de la création du commentaire')
+          console.error('Erreur lors de la création du commentaire:', error)
         }
       }
     },
@@ -221,11 +219,11 @@ export default {
           this.comments[index] = response.data.comment
         }
         
-        this.$toast.success('Commentaire modifié avec succès')
+        console.log('Commentaire modifié avec succès')
         this.cancelEdit()
       } catch (error) {
         console.error('Erreur lors de la modification du commentaire:', error)
-        this.$toast.error('Erreur lors de la modification du commentaire')
+        console.error('Erreur lors de la modification du commentaire:', error)
       }
     },
 
@@ -234,10 +232,10 @@ export default {
         try {
           await commentsAPI.deleteComment(commentId)
           this.comments = this.comments.filter(c => c.comment_id !== commentId)
-          this.$toast.success('Commentaire supprimé avec succès')
+          console.log('Commentaire supprimé avec succès')
         } catch (error) {
           console.error('Erreur lors de la suppression du commentaire:', error)
-          this.$toast.error('Erreur lors de la suppression du commentaire')
+          console.error('Erreur lors de la suppression du commentaire:', error)
         }
       }
     },

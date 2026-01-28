@@ -56,74 +56,6 @@
               </select>
             </div>
 
-            <!-- Section membres (seulement lors de la création) -->
-            <div v-if="!project" class="mb-3">
-              <div class="border rounded p-3 bg-light">
-                <h6 class="mb-3">
-                  <i class="fas fa-users me-2"></i>
-                  Ajouter des membres (optionnel)
-                </h6>
-                
-                <!-- Ajouter un membre -->
-                <div class="row mb-2">
-                  <div class="col-md-9">
-                    <select 
-                      class="form-select form-select-sm" 
-                      v-model="newMember.userId"
-                      :disabled="loadingUsers"
-                    >
-                      <option value="">Sélectionner un utilisateur</option>
-                      <option 
-                        v-for="user in availableUsers" 
-                        :key="user.user_id" 
-                        :value="user.user_id"
-                      >
-                        {{ user.firstname }} {{ user.lastname }} ({{ user.email }})
-                      </option>
-                    </select>
-                    <div v-if="loadingUsers" class="form-text">
-                      <i class="spinner-border spinner-border-sm me-1"></i>
-                      Chargement...
-                    </div>
-                  </div>
-                  <div class="col-md-3">
-                    <button 
-                      type="button" 
-                      class="btn btn-sm btn-outline-success w-100"
-                      @click="addMemberToList"
-                      :disabled="!newMember.userId"
-                    >
-                      <i class="fas fa-plus"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Liste des membres à ajouter -->
-                <div v-if="formData.members.length > 0">
-                  <small class="text-muted mb-2 d-block">Membres à ajouter :</small>
-                  <div class="d-flex flex-wrap gap-2">
-                    <span 
-                      v-for="(member, index) in formData.members" 
-                      :key="index"
-                      class="badge bg-primary d-flex align-items-center"
-                    >
-                      {{ getUserDisplayName(member.userId) }}
-                      <button 
-                        type="button" 
-                        class="btn-close btn-close-white ms-2"
-                        style="font-size: 0.7em;"
-                        @click="removeMemberFromList(index)"
-                      ></button>
-                    </span>
-                  </div>
-                </div>
-                
-                <small class="text-muted">
-                  <i class="fas fa-info-circle me-1"></i>
-                  Vous pouvez ajouter des membres maintenant ou plus tard via "Gérer les membres"
-                </small>
-              </div>
-            </div>
           </div>
           
           <div class="modal-footer">
@@ -141,7 +73,6 @@
 </template>
 
 <script>
-import { authAPI } from '../services/api'
 import { authStore } from '../stores/auth'
 
 export default {
@@ -157,22 +88,11 @@ export default {
       formData: {
         name: '',
         description: '',
-        status: 'New',
-        members: []
-      },
-      newMember: {
-        userId: ''
-      },
-      allUsers: [],
-      loadingUsers: false
+        status: 'New'
+      }
     }
   },
   computed: {
-    availableUsers() {
-      // Filtrer les utilisateurs qui ne sont pas déjà dans la liste des membres
-      const memberIds = this.formData.members.map(m => m.userId)
-      return this.allUsers.filter(user => !memberIds.includes(user.user_id))
-    },
     canCreateProject() {
       return authStore.canCreateProjects()
     },
@@ -180,65 +100,20 @@ export default {
       return authStore.getRoleName()
     }
   },
-  async mounted() {
+  mounted() {
     if (this.project) {
       this.formData = {
         name: this.project.project_name || '',
         description: this.project.description || '',
-        status: this.project.status || 'New',
-        members: [] // Pas de gestion des membres en modification
+        status: this.project.status || 'New'
       }
     }
-    // Charger les utilisateurs pour la sélection
-    await this.loadUsers()
   },
   methods: {
-    async loadUsers() {
-      this.loadingUsers = true
-      try {
-        const response = await authAPI.getAllUsers()
-        this.allUsers = response.data.users || []
-      } catch (error) {
-        console.error('Erreur lors du chargement des utilisateurs:', error)
-      } finally {
-        this.loadingUsers = false
-      }
-    },
-
     handleSubmit() {
       if (this.formData.name.trim()) {
         this.$emit('save', this.formData)
       }
-    },
-
-    getUserDisplayName(userId) {
-      const user = this.allUsers.find(u => u.user_id === userId)
-      if (user) {
-        return `${user.firstname} ${user.lastname}`
-      }
-      return `ID: ${userId}`
-    },
-
-    addMemberToList() {
-      if (!this.newMember.userId) return
-
-      // Vérifier qu'il n'est pas déjà dans la liste
-      const exists = this.formData.members.some(m => m.userId === parseInt(this.newMember.userId))
-      if (exists) {
-        alert('Cet utilisateur est déjà dans la liste')
-        return
-      }
-
-      this.formData.members.push({
-        userId: parseInt(this.newMember.userId)
-      })
-
-      // Réinitialiser le formulaire
-      this.newMember = { userId: '' }
-    },
-
-    removeMemberFromList(index) {
-      this.formData.members.splice(index, 1)
     }
   }
 }

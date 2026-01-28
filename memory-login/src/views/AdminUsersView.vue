@@ -8,10 +8,6 @@
             <i class="fas fa-users-cog me-2"></i>
             Administration des utilisateurs
           </h2>
-          <p class="text-muted mb-0">Gérer les utilisateurs et leurs rôles</p>
-        </div>
-        <div class="text-end">
-          <span class="badge bg-primary fs-6">{{ users.length }} utilisateur{{ users.length > 1 ? 's' : '' }}</span>
         </div>
       </div>
 
@@ -44,18 +40,9 @@
       <!-- Liste des utilisateurs -->
       <div class="card">
         <div class="card-body">
-          <div v-if="loading" class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Chargement...</span>
-            </div>
-            <p class="mt-2 mb-0">Chargement des utilisateurs...</p>
-          </div>
+          <div v-if="loading">Chargement...</div>
 
-          <div v-else-if="filteredUsers.length === 0" class="text-center py-4">
-            <i class="fas fa-users fa-3x text-muted mb-3"></i>
-            <h5 class="text-muted">Aucun utilisateur trouvé</h5>
-            <p class="text-muted mb-0">Aucun utilisateur ne correspond à vos critères de recherche.</p>
-          </div>
+          <div v-else-if="filteredUsers.length === 0">Aucun utilisateur trouvé</div>
 
           <div v-else class="table-responsive">
             <table class="table table-hover">
@@ -70,17 +57,7 @@
               </thead>
               <tbody>
                 <tr v-for="user in filteredUsers" :key="user.user_id">
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <div class="avatar-circle me-3">
-                        {{ getInitials(user.firstname, user.lastname) }}
-                      </div>
-                      <div>
-                        <div class="fw-semibold">{{ user.firstname }} {{ user.lastname }}</div>
-                        <small class="text-muted">ID: {{ user.user_id }}</small>
-                      </div>
-                    </div>
-                  </td>
+                  <td>{{ user.firstname }} {{ user.lastname }}</td>
                   <td>
                     <span class="text-break">{{ user.email }}</span>
                   </td>
@@ -92,9 +69,7 @@
                       {{ user.role_name || 'Non défini' }}
                     </span>
                   </td>
-                  <td>
-                    <small>{{ formatDate(user.created_at) }}</small>
-                  </td>
+                  <td>{{ new Date(user.created_at).toLocaleDateString() }}</td>
                   <td class="text-end">
                     <div class="btn-group" role="group">
                       <button
@@ -274,10 +249,6 @@ export default {
       }
     },
 
-    getInitials(firstname, lastname) {
-      return `${firstname?.charAt(0) || ''}${lastname?.charAt(0) || ''}`.toUpperCase()
-    },
-
     getRoleBadgeClass(roleName) {
       const classes = {
         'Admin': 'bg-danger',
@@ -286,46 +257,12 @@ export default {
         'Viewer': 'bg-secondary'
       }
       return classes[roleName] || 'bg-secondary'
-    },
-
-    formatDate(dateString) {
-      return new Date(dateString).toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
     }
   }
 }
 </script>
 
 <style scoped>
-.admin-users-view {
-  min-height: 100vh;
-  background-color: #f8f9fa;
-  padding: 2rem 0;
-}
-
-.avatar-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #007bff;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 0.875rem;
-  flex-shrink: 0;
-}
-
-.table-hover tbody tr:hover {
-  background-color: rgba(0, 123, 255, 0.05);
-}
-
 .modal {
   position: fixed;
   top: 0;
@@ -333,10 +270,5 @@ export default {
   width: 100%;
   height: 100%;
   z-index: 1055;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 </style>

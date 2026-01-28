@@ -3,29 +3,6 @@
   Styles minimalistes pour l'application convertie à Bootstrap Vue
 */
 
-/* === TOASTS NOTIFICATIONS === */
-.toast-container {
-  max-width: 350px;
-}
-
-.toast {
-  opacity: 0;
-  transform: translateX(100%);
-  transition: all 0.3s ease-in-out;
-  margin-bottom: 0.5rem;
-  min-width: 300px;
-}
-
-.toast.show {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.toast-body {
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
 /* === RESPONSIVE === */
 @media (max-width: 768px) {
   .main-content {

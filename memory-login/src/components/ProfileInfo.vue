@@ -20,57 +20,6 @@
     <div class="card-body">
       <form @submit.prevent="saveProfile">
         <div class="row">
-          <!-- Informations personnelles -->
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label class="form-label">Prénom</label>
-              <input
-                v-model="localUser.firstname"
-                type="text"
-                class="form-control"
-                placeholder="Votre prénom"
-                required
-              >
-            </div>
-          </div>
-          
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label class="form-label">Nom</label>
-              <input
-                v-model="localUser.lastname"
-                type="text"
-                class="form-control"
-                placeholder="Votre nom"
-                required
-              >
-            </div>
-          </div>
-          
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label class="form-label">Email</label>
-              <input
-                v-model="localUser.email"
-                type="email"
-                class="form-control"
-                placeholder="votre.email@entreprise.com"
-                required
-              >
-            </div>
-          </div>
-          
-          <div class="col-md-6">
-            <div class="mb-3">
-              <label class="form-label">Téléphone</label>
-              <input
-                v-model="localUser.telephone"
-                type="tel"
-                class="form-control"
-                placeholder="+33 1 23 45 67 89"
-              >
-            </div>
-          </div>
           
           <!-- Description Section -->
           <div class="col-12">
@@ -192,10 +141,6 @@ export default {
         
         // Call API to update profile
         await authAPI.updateProfile({
-          firstname: this.localUser.firstname,
-          lastname: this.localUser.lastname,
-          email: this.localUser.email,
-          telephone: this.localUser.telephone,
           description: this.localUser.description
         })
         
@@ -220,7 +165,7 @@ export default {
     },
     
     resetForm() {
-      this.localUser = { ...this.originalUser }
+      this.localUser.description = this.originalUser.description
       this.showError = false
       this.showSuccess = false
     }

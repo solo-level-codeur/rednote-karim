@@ -1,9 +1,6 @@
 <template>
   <div class="mb-3">
-    <label class="form-label fw-medium text-secondary">
-      <i class="fa fa-tags me-2"></i>
-      Tags
-    </label>
+    <label class="form-label fw-medium text-secondary">Tags</label>
     
     <!-- Tags sélectionnés -->
     <div class="mb-2" style="min-height: 2rem;" v-if="selectedTags.length > 0">
@@ -32,7 +29,7 @@
         class="form-select flex-fill"
         :disabled="loading"
       >
-        <option value="">Ajouter un tag...</option>
+        <option value="">Sélectionner...</option>
         <option 
           v-for="tag in availableTags" 
           :key="tag.id" 
@@ -42,38 +39,8 @@
         </option>
       </select>
       
-      <button 
-        @click="showCreateTag = true"
-        class="btn btn-outline-primary btn-sm ms-2"
-        type="button"
-      >
-        <i class="fa fa-plus"></i>
-      </button>
     </div>
 
-    <!-- Modal création de tag -->
-    <div v-if="showCreateTag" class="position-fixed top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center" style="z-index: 1050;">
-      <div class="position-absolute top-0 start-0 end-0 bottom-0 bg-dark bg-opacity-50" @click="showCreateTag = false"></div>
-      <div class="position-relative bg-white p-4 rounded shadow" style="min-width: 300px;">
-        <h6 class="mb-3 fw-semibold">Créer un nouveau tag</h6>
-        <input 
-          v-model="newTagName"
-          class="form-control mb-2"
-          placeholder="Nom du tag"
-          @keyup.enter="createTag"
-        >
-        <input 
-          v-model="newTagColor"
-          type="color"
-          class="form-control mb-3"
-          value="#007bff"
-        >
-        <div class="d-flex justify-content-end">
-          <button @click="createTag" class="btn btn-primary btn-sm">Créer</button>
-          <button @click="showCreateTag = false" class="btn btn-secondary btn-sm ms-2">Annuler</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -98,9 +65,6 @@ const allTags = ref([])
 const selectedTags = ref([...props.modelValue])
 const selectedTagId = ref('')
 const loading = ref(false)
-const showCreateTag = ref(false)
-const newTagName = ref('')
-const newTagColor = ref('#007bff')
 
 // Tags disponibles (non encore sélectionnés)
 const availableTags = computed(() => {
@@ -144,36 +108,6 @@ const removeTag = async (tagId) => {
   emit('update:modelValue', selectedTags.value)
 }
 
-const createTag = async () => {
-  if (!newTagName.value.trim()) return
-  
-  try {
-    const response = await tagsAPI.createTag({
-      name: newTagName.value.trim(),
-      color: newTagColor.value
-    })
-    
-    const newTag = response.data
-    allTags.value.push(newTag)
-    
-    // Ajouter automatiquement le nouveau tag
-    selectedTags.value.push(newTag)
-    
-    if (props.noteId) {
-      await tagsAPI.addTagToNote(props.noteId, newTag.id)
-    }
-    
-    emit('update:modelValue', selectedTags.value)
-    
-    // Reset
-    newTagName.value = ''
-    newTagColor.value = '#007bff'
-    showCreateTag.value = false
-    
-  } catch (error) {
-    console.error('Erreur lors de la création du tag:', error)
-  }
-}
 
 const loadTags = async () => {
   loading.value = true

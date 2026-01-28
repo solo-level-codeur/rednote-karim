@@ -2,20 +2,9 @@
   <div class="modal fade" id="projectMembersModal" tabindex="-1" aria-labelledby="projectMembersModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="projectMembersModalLabel">
-            <i class="fas fa-users me-2"></i>
-            Gestion des membres - {{ project?.project_name }}
-          </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
-        </div>
         <div class="modal-body">
           <!-- Ajouter un membre -->
           <div v-if="isProjectOwner" class="border rounded p-3 mb-4 bg-light">
-            <h6 class="mb-3">
-              <i class="fas fa-user-plus me-2"></i>
-              Ajouter un membre
-            </h6>
             <div class="row">
               <div class="col-md-8">
                 <label class="form-label">Utilisateur</label>
@@ -33,10 +22,7 @@
                     {{ user.firstname }} {{ user.lastname }} ({{ user.email }})
                   </option>
                 </select>
-                <div v-if="loadingUsers" class="form-text">
-                  <i class="spinner-border spinner-border-sm me-1"></i>
-                  Chargement des utilisateurs...
-                </div>
+                <div v-if="loadingUsers">...</div>
               </div>
               <div class="col-md-4 d-flex align-items-end">
                 <button 
@@ -53,21 +39,10 @@
 
           <!-- Liste des membres -->
           <div>
-            <h6 class="mb-3">
-              <i class="fas fa-list me-2"></i>
-              Membres du projet ({{ members.length }})
-            </h6>
             
-            <div v-if="loading" class="text-center p-3">
-              <div class="spinner-border" role="status">
-                <span class="visually-hidden">Chargement...</span>
-              </div>
-            </div>
+            <div v-if="loading">Chargement...</div>
 
-            <div v-else-if="members.length === 0" class="text-center p-3 text-muted">
-              <i class="fas fa-users fa-2x mb-2"></i>
-              <p class="mb-0">Aucun membre dans ce projet</p>
-            </div>
+            <div v-else-if="members.length === 0">Aucun membre</div>
 
             <div v-else class="table-responsive">
               <table class="table table-hover">
@@ -82,17 +57,7 @@
                 </thead>
                 <tbody>
                   <tr v-for="member in members" :key="member.id">
-                    <td>
-                      <div class="d-flex align-items-center">
-                        <div class="avatar-circle me-2">
-                          {{ getInitials(member.firstname, member.lastname) }}
-                        </div>
-                        <div>
-                          <div class="fw-semibold">{{ member.firstname }} {{ member.lastname }}</div>
-                          <small class="text-muted">{{ member.email }}</small>
-                        </div>
-                      </div>
-                    </td>
+                    <td>{{ member.firstname }} {{ member.lastname }}</td>
                     <td>
                       <span 
                         class="badge"
@@ -109,9 +74,7 @@
                         {{ member.user_type === 'owner' ? 'Propriétaire' : 'Membre' }}
                       </span>
                     </td>
-                    <td>
-                      <small>{{ formatDate(member.joined_at) }}</small>
-                    </td>
+                    <td>{{ new Date(member.joined_at).toLocaleDateString() }}</td>
                     <td v-if="isProjectOwner && member.user_type !== 'owner'">
                       <div class="btn-group btn-group-sm">
                         <button 
@@ -140,9 +103,11 @@
               </table>
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+          
+          <!-- Bouton fermer -->
+          <div class="text-end mt-4">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+          </div>
         </div>
       </div>
     </div>
@@ -361,12 +326,6 @@ export default {
       }
     },
 
-    getInitials(firstname, lastname) {
-      const first = firstname ? firstname.charAt(0).toUpperCase() : ''
-      const last = lastname ? lastname.charAt(0).toUpperCase() : ''
-      return first + last
-    },
-
     getRoleBadgeClass(role) {
       const roleClasses = {
         'Admin': 'bg-danger',
@@ -375,45 +334,8 @@ export default {
         'Editor': 'bg-success'
       }
       return roleClasses[role] || 'bg-primary'
-    },
-
-    formatDate(dateString) {
-      if (!dateString) return '-'
-      const date = new Date(dateString)
-      return date.toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      })
     }
   }
 }
 </script>
 
-<style scoped>
-.avatar-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #007bff;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
-.table th {
-  font-weight: 600;
-  color: #495057;
-}
-
-.btn-group-sm .btn {
-  padding: 0.25rem 0.5rem;
-}
-
-.badge {
-  font-size: 0.75rem;
-}
-</style>

@@ -2,7 +2,6 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from './router'
 import { authStore } from './stores/auth'
-import toastPlugin from './utils/toast'
 import SimpleSidebar from './components/SimpleSidebar.vue'
 
 // Bootstrap CSS (framework UI)
@@ -21,7 +20,6 @@ authStore.initializeAuth()
 // Créer l'app Vue avec Bootstrap CSS pur
 const app = createApp(App)
 app.use(router)                    // Router
-app.use(toastPlugin)               // Plugin toast personnalisé
 app.component('Sidebar', SimpleSidebar)  // Composant Sidebar simplifié avec Bootstrap
   
 app.mount("#app")

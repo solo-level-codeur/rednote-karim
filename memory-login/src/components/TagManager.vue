@@ -101,7 +101,7 @@ export default {
         this.tags = response.data
       } catch (error) {
         console.error('Erreur lors du chargement des tags:', error)
-        this.$toast.error('Erreur lors du chargement des tags')
+        console.error('Erreur lors du chargement des tags:', error)
       } finally {
         this.loading = false
       }
@@ -116,10 +116,10 @@ export default {
         try {
           await tagsAPI.deleteTag(tagId)
           this.tags = this.tags.filter(t => t.id !== tagId)
-          this.$toast.success('Tag supprimé avec succès')
+          console.log('Tag supprimé avec succès')
         } catch (error) {
           console.error('Erreur lors de la suppression:', error)
-          this.$toast.error('Erreur lors de la suppression du tag')
+          console.error('Erreur lors de la suppression du tag:', error)
         }
       }
     },
@@ -133,7 +133,7 @@ export default {
           if (index !== -1) {
             this.tags[index] = { ...this.tags[index], ...tagData }
           }
-          this.$toast.success('Tag modifié avec succès')
+          console.log('Tag modifié avec succès')
         } else {
           // Création
           const response = await tagsAPI.createTag(tagData)
@@ -142,11 +142,11 @@ export default {
             id: response.data.id,
             created_at: new Date().toISOString()
           })
-          this.$toast.success('Tag créé avec succès')
+          console.log('Tag créé avec succès')
         }
       } catch (error) {
         console.error('Erreur lors de la sauvegarde:', error)
-        this.$toast.error('Erreur lors de la sauvegarde du tag')
+        console.error('Erreur lors de la sauvegarde du tag:', error)
       }
       this.handleCancelTag()
     },

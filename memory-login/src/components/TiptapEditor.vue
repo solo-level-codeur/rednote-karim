@@ -1,7 +1,8 @@
 <template>
-  <div class="editor-container">
+  <div class="editor-container" :class="{ 'readonly': disabled }">
     
-    <SimpleEditorToolbar :editor="editor" />
+    <!-- Toolbar seulement si éditable -->
+    <SimpleEditorToolbar v-if="!disabled" :editor="editor" />
     
     <EditorContent :editor="editor" class="editor-content" />
   </div>
@@ -33,7 +34,11 @@ export default {
   props: {
     modelValue: {
       type: String,
-      default: '<p>Commencez à écrire votre contenu...</p>'
+      default: ''
+    },
+    disabled: {
+      type: Boolean,
+      default: false
     }
   },
   
@@ -50,12 +55,18 @@ export default {
       if (this.editor && this.editor.getHTML() !== newValue) {
         this.editor.commands.setContent(newValue, false)
       }
+    },
+    disabled(newValue) {
+      if (this.editor) {
+        this.editor.setEditable(!newValue)
+      }
     }
   },
   
   mounted() {
     this.editor = new Editor({
       content: this.modelValue,
+      editable: !this.disabled,
       extensions: [
         StarterKit.configure({
           // StarterKit inclut déjà Link et autres, on les désactive pour éviter les doublons
@@ -104,6 +115,13 @@ export default {
 <style scoped>
 .editor-container {
   border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.editor-container.readonly {
+  border-color: transparent;
+  background-color: #f8f9fa;
 }
 
 .editor-content {

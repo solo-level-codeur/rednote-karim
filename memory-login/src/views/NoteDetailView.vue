@@ -33,7 +33,7 @@
               @click="showComments = !showComments"
             >
               <i class="fas fa-comments"></i> 
-              Commentaires ({{ commentsCount }})
+              Commentaires
             </button>
             
             <!-- Mode édition -->
@@ -86,11 +86,7 @@
                     </select>
                   </div>
                   
-                  <!-- Tags -->
                   <div class="col-12">
-                    <label class="form-label fw-semibold">
-                      <i class="fas fa-tags me-2"></i>Tags
-                    </label>
                     <div class="tags-section">
                       <TagSelector 
                         v-if="note"
@@ -127,7 +123,6 @@
                 v-if="note"
                 :noteId="note.note_id" 
                 :currentUserId="currentUser?.id"
-                @comments-count="updateCommentsCount"
               />
             </div>
           </div>
@@ -163,7 +158,6 @@ export default {
       error: null,
       isEditing: false,
       showComments: false,
-      commentsCount: 0,
       editor: null,
       originalContent: '',
       editableTitle: '',
@@ -308,11 +302,11 @@ export default {
         this.isEditing = false
         this.editor.setEditable(false)
         
-        this.$toast?.success('Note sauvegardée avec succès')
+        console.log('Note sauvegardée avec succès')
         console.log('✅ Note sauvegardée')
       } catch (error) {
         console.error('❌ Erreur lors de la sauvegarde:', error)
-        this.$toast?.error('Erreur lors de la sauvegarde')
+        console.error('Erreur lors de la sauvegarde:', error)
       }
     },
 
@@ -326,9 +320,6 @@ export default {
       this.$router.go(-1)
     },
 
-    updateCommentsCount(count) {
-      this.commentsCount = count
-    },
 
     formatDate(dateString) {
       if (!dateString) return ''
@@ -362,10 +353,10 @@ export default {
         })
         
         this.note.title = this.editableTitle
-        this.$toast?.success('Titre mis à jour')
+        console.log('Titre mis à jour')
       } catch (error) {
         console.error('Erreur lors de la mise à jour du titre:', error)
-        this.$toast?.error('Erreur lors de la mise à jour du titre')
+        console.error('Erreur lors de la mise à jour du titre:', error)
         this.editableTitle = this.note.title // Restaurer
       }
     },
@@ -382,10 +373,10 @@ export default {
         
         this.note.project_id = this.editableProjectId
         this.note.project_name = this.projects.find(p => p.project_id == this.editableProjectId)?.project_name || null
-        this.$toast?.success('Projet mis à jour')
+        console.log('Projet mis à jour')
       } catch (error) {
         console.error('Erreur lors de la mise à jour du projet:', error)
-        this.$toast?.error('Erreur lors de la mise à jour du projet')
+        console.error('Erreur lors de la mise à jour du projet:', error)
         this.editableProjectId = this.note.project_id || '' // Restaurer
       }
     },

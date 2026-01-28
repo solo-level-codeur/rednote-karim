@@ -23,50 +23,24 @@
       
       <!-- User Info Display -->
       <div class="text-center">
-        <h5 class="mb-1">{{ fullName || 'Utilisateur' }}</h5>
-        <p class="text-muted mb-2">{{ user.description || 'Description non définie' }}</p>
+        <h5 class="mb-3">{{ fullName || 'Utilisateur' }}</h5>
         
-        <hr class="my-3">
-        
-        <!-- Statistics avec Bootstrap Grid -->
-        <div v-if="user.stats" class="row mb-3 text-center">
-          <div class="col-3">
-            <div class="p-2">
-              <div class="h4 fw-bold text-primary mb-1">{{ user.stats.total_notes }}</div>
-              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Notes</small>
-            </div>
-          </div>
-          <div class="col-3">
-            <div class="p-2">
-              <div class="h4 fw-bold text-primary mb-1">{{ user.stats.total_projects }}</div>
-              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Projets</small>
-            </div>
-          </div>
-          <div class="col-3">
-            <div class="p-2">
-              <div class="h4 fw-bold text-primary mb-1">{{ user.stats.total_comments }}</div>
-              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Commentaires</small>
-            </div>
-          </div>
-          <div class="col-3">
-            <div class="p-2">
-              <div class="h4 fw-bold text-primary mb-1">{{ user.stats.shared_notes }}</div>
-              <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.75rem; letter-spacing: 0.5px;">Partagées</small>
-            </div>
-          </div>
+        <!-- Description simple -->
+        <div class="mb-3">
+          <input 
+            v-model="description" 
+            @blur="saveDescription"
+            placeholder="Description (max 30 caractères)"
+            maxlength="30" 
+            class="form-control form-control-sm text-center"
+          >
         </div>
-        
-        <hr class="my-3">
         
         <!-- Informations détaillées -->
         <div class="row text-start">
           <div class="col-12 mb-2">
             <strong>Email:</strong>
             <div class="text-muted">{{ user.email || 'Non renseigné' }}</div>
-          </div>
-          <div class="col-12 mb-2">
-            <strong>Rôle:</strong>
-            <div class="text-muted">{{ getRoleName(user.role_id) }}</div>
           </div>
           <div class="col-12 mb-2" v-if="user.telephone">
             <strong>Téléphone:</strong>
@@ -87,11 +61,15 @@
 
 export default {
   name: 'ProfileHeader',
-  // Pas de composants Bootstrap Vue nécessaires
   props: {
     user: {
       type: Object,
       required: true
+    }
+  },
+  data() {
+    return {
+      description: this.user.description || ''
     }
   },
   computed: {
@@ -108,6 +86,10 @@ export default {
     }
   },
   methods: {
+    saveDescription() {
+      this.$emit('update-description', this.description.trim())
+    },
+
     formatDate(dateString) {
       if (!dateString) return ''
       const date = new Date(dateString)
@@ -116,16 +98,6 @@ export default {
         month: 'long',
         day: 'numeric'
       })
-    },
-    
-    getRoleName(roleId) {
-      const roles = {
-        1: 'Admin',
-        2: 'Manager', 
-        3: 'Developer',
-        4: 'Viewer'
-      }
-      return roles[roleId] || 'Non défini'
     }
   }
 }
