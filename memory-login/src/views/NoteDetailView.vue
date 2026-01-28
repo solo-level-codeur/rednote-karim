@@ -101,17 +101,11 @@
 
               <!-- Zone d'édition TipTap -->
               <div class="tiptap-container">
-                <!-- Toolbar TipTap (seulement en mode édition) -->
-                <SimpleEditorToolbar 
-                  v-if="isEditing && editor"
-                  :editor="editor"
+                <TiptapEditor 
+                  v-if="note"
+                  v-model="noteContent"
+                  :disabled="!isEditing"
                 />
-                
-                <div 
-                  ref="tiptapEditor" 
-                  class="note-editor"
-                  :class="{ 'editing': isEditing, 'readonly': !isEditing }"
-                ></div>
               </div>
             </div>
           </div>
@@ -137,19 +131,16 @@
 // Sidebar est maintenant un composant global (voir main.js)
 import CommentsSection from '../components/CommentsSection.vue'
 import TagSelector from '../components/TagSelector.vue'
-import SimpleEditorToolbar from '../components/SimpleEditorToolbar.vue'
+import TiptapEditor from '../components/TiptapEditor.vue'
 import { notesAPI, projectsAPI } from '../services/api'
 import { authStore } from '../stores/auth'
-import { Editor } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Placeholder from '@tiptap/extension-placeholder'
 
 export default {
   name: 'NoteDetailView',
   components: {
     CommentsSection,
     TagSelector,
-    SimpleEditorToolbar
+    TiptapEditor
   },
   data() {
     return {
@@ -158,12 +149,12 @@ export default {
       error: null,
       isEditing: false,
       showComments: false,
-      editor: null,
-      originalContent: '',
+      noteContent: '',
       editableTitle: '',
       editableProjectId: '',
       noteTags: [],
-      projects: []
+      projects: [],
+      noteAuthor: null
     }
   },
   computed: {
@@ -171,10 +162,9 @@ export default {
       return authStore.state.user
     },
     authorName() {
-      if (!this.note) return ''
-      if (this.note.authorName) return this.note.authorName
-      if (this.note.author_firstname && this.note.author_lastname) {
-        return `${this.note.author_firstname} ${this.note.author_lastname}`
+      if (!this.noteAuthor) return 'Chargement...'
+      if (this.noteAuthor.firstname && this.noteAuthor.lastname) {
+        return `${this.noteAuthor.firstname} ${this.noteAuthor.lastname}`
       }
       return 'Auteur inconnu'
     },
@@ -193,21 +183,11 @@ export default {
       
       return isOwner || hasWritePermission || hasAdminPermission
     },
-    canManageNote() {
-      if (!this.note || !this.currentUser) return false
-      // Peut gérer les droits si propriétaire
-      return this.note.user_id === this.currentUser.id
-    }
   },
   async mounted() {
     await this.loadNote()
+    await this.loadNoteAuthor()
     await this.loadProjects()
-    this.initializeTipTap()
-  },
-  beforeUnmount() {
-    if (this.editor) {
-      this.editor.destroy()
-    }
   },
   methods: {
     async loadNote() {
@@ -218,18 +198,13 @@ export default {
         console.log('🔍 Chargement de la note:', noteId)
         const response = await notesAPI.getNoteById(noteId)
         this.note = response.data
-        this.originalContent = this.note.content || ''
+        this.noteContent = this.note.content || ''
         
         // Initialiser les valeurs éditables
         this.editableTitle = this.note.title || ''
         this.editableProjectId = this.note.project_id || ''
         
         console.log('✅ Note chargée:', this.note)
-        
-        // Réinitialiser TipTap avec le contenu de la note
-        if (this.editor) {
-          this.editor.commands.setContent(this.note.content || '')
-        }
       } catch (error) {
         console.error('❌ Erreur lors du chargement de la note:', error)
         this.error = 'Note introuvable ou accès refusé'
@@ -238,83 +213,34 @@ export default {
       }
     },
 
-    initializeTipTap() {
-      this.$nextTick(() => {
-        if (this.editor) {
-          this.editor.destroy()
-        }
-
-        if (!this.$refs.tiptapEditor) {
-          console.error('❌ Ref tiptapEditor introuvable')
-          return
-        }
-
-        this.editor = new Editor({
-          element: this.$refs.tiptapEditor,
-          extensions: [
-            StarterKit,
-            Placeholder.configure({
-              placeholder: 'Commencez à écrire...'
-            })
-          ],
-          content: this.note?.content || '',
-          editable: false, // Commencer en mode lecture
-          editorProps: {
-            attributes: {
-              class: 'prose prose-lg max-w-none focus:outline-none p-4'
-            }
-          }
-        })
-        
-        console.log('✅ TipTap initialisé', { editor: !!this.editor })
-      })
-    },
 
     toggleEditMode() {
-      if (!this.editor) {
-        console.error('❌ Éditeur TipTap non initialisé')
-        return
-      }
-      
       if (this.isEditing) {
         // Sauvegarder
         this.saveNote()
       } else {
         // Entrer en mode édition
         this.isEditing = true
-        this.editor.setEditable(true)
-        this.editor.commands.focus()
         console.log('📝 Mode édition activé')
       }
     },
 
     async saveNote() {
       try {
-        const content = this.editor.getHTML()
-        
         await notesAPI.updateNote(this.note.note_id, {
           title: this.note.title,
-          content: content
+          content: this.noteContent
         })
         
-        this.note.content = content
-        this.originalContent = content
+        this.note.content = this.noteContent
         this.isEditing = false
-        this.editor.setEditable(false)
         
-        console.log('Note sauvegardée avec succès')
         console.log('✅ Note sauvegardée')
       } catch (error) {
         console.error('❌ Erreur lors de la sauvegarde:', error)
-        console.error('Erreur lors de la sauvegarde:', error)
       }
     },
 
-    cancelEdit() {
-      this.editor.commands.setContent(this.originalContent)
-      this.isEditing = false
-      this.editor.setEditable(false)
-    },
 
     goBack() {
       this.$router.go(-1)
@@ -356,7 +282,6 @@ export default {
         console.log('Titre mis à jour')
       } catch (error) {
         console.error('Erreur lors de la mise à jour du titre:', error)
-        console.error('Erreur lors de la mise à jour du titre:', error)
         this.editableTitle = this.note.title // Restaurer
       }
     },
@@ -376,8 +301,20 @@ export default {
         console.log('Projet mis à jour')
       } catch (error) {
         console.error('Erreur lors de la mise à jour du projet:', error)
-        console.error('Erreur lors de la mise à jour du projet:', error)
         this.editableProjectId = this.note.project_id || '' // Restaurer
+      }
+    },
+
+    async loadNoteAuthor() {
+      const noteId = this.$route.params.id
+      
+      try {
+        const response = await notesAPI.getNoteAuthor(noteId)
+        this.noteAuthor = response.data
+        console.log('✅ Auteur chargé:', this.noteAuthor)
+      } catch (error) {
+        console.error('❌ Erreur lors du chargement de l\'auteur:', error)
+        this.noteAuthor = { firstname: 'Auteur', lastname: 'inconnu' }
       }
     },
 
@@ -421,92 +358,6 @@ export default {
   overflow-y: auto;
 }
 
-.tiptap-container {
-  min-height: 500px;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.tiptap-container:has(.note-editor.editing) {
-  border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.note-editor {
-  min-height: 500px;
-  transition: all 0.2s ease;
-}
-
-.note-editor.editing {
-  background-color: #fff;
-}
-
-.note-editor.readonly {
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-/* Styles TipTap */
-:deep(.ProseMirror) {
-  outline: none;
-  padding: 2rem;
-  min-height: 500px;
-}
-
-:deep(.ProseMirror h1) {
-  font-size: 2rem;
-  font-weight: bold;
-  margin: 1.5rem 0 1rem;
-}
-
-:deep(.ProseMirror h2) {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 1.25rem 0 0.75rem;
-}
-
-:deep(.ProseMirror h3) {
-  font-size: 1.25rem;
-  font-weight: bold;
-  margin: 1rem 0 0.5rem;
-}
-
-:deep(.ProseMirror p) {
-  margin: 0.75rem 0;
-  line-height: 1.6;
-}
-
-:deep(.ProseMirror ul, .ProseMirror ol) {
-  margin: 0.75rem 0;
-  padding-left: 2rem;
-}
-
-:deep(.ProseMirror blockquote) {
-  border-left: 4px solid #ddd;
-  padding-left: 1rem;
-  margin: 1rem 0;
-  color: #666;
-}
-
-:deep(.ProseMirror code) {
-  background-color: #f4f4f4;
-  padding: 0.2rem 0.4rem;
-  border-radius: 3px;
-  font-family: 'Monaco', 'Courier New', monospace;
-}
-
-:deep(.ProseMirror pre) {
-  background-color: #f4f4f4;
-  padding: 1rem;
-  border-radius: 6px;
-  overflow-x: auto;
-}
-
-:deep(.ProseMirror .placeholder) {
-  color: #aaa;
-  pointer-events: none;
-}
 
 @media (max-width: 768px) {
   .main-content {

@@ -1,4 +1,4 @@
-const { createNote, getAllNotes, getAllNotesFromProject, getNoteById, updateNote, deleteNote } = require('../models/noteModel');
+const { createNote, getAllNotes, getAllNotesFromProject, getNoteById, updateNote, deleteNote, getNoteAuthor } = require('../models/noteModel');
 const { hasPermission } = require('../models/rbac');
 
 // Créer une nouvelle note
@@ -128,11 +128,32 @@ const getAllNotesFromProjectController = async (req, res) => {
   }
 };
 
+// Obtenir l'auteur d'une note
+const getNoteAuthorController = async (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const author = await getNoteAuthor(id);
+    if (!author) {
+      return res.status(404).json({ message: 'Note non trouvée' });
+    }
+    
+    res.json({
+      firstname: author.firstname,
+      lastname: author.lastname
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'auteur :', error);
+    res.status(500).json({ message: 'Erreur du serveur' });
+  }
+};
+
 module.exports = { 
   createNoteController, 
   getAllNotesController, 
   getAllNotesFromProjectController,
   getNoteByIdController, 
   updateNoteController, 
-  deleteNoteController
+  deleteNoteController,
+  getNoteAuthorController
 };

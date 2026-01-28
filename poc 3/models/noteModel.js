@@ -176,6 +176,20 @@ const deleteNote = async (id, userId) => {
 };
 
 
+// Obtenir l'auteur d'une note spécifique  
+const getNoteAuthor = async (noteId) => {
+  const [rows] = await db.query(`
+    SELECT 
+      users.firstname,
+      users.lastname
+    FROM notes 
+    INNER JOIN users ON notes.user_id = users.user_id
+    WHERE notes.note_id = ?
+  `, [noteId]);
+  
+  return rows[0];
+};
+
 module.exports = {
   getAllNotes,
   getAllNotesFromProject,
@@ -183,4 +197,5 @@ module.exports = {
   createNote,
   updateNote,
   deleteNote,
+  getNoteAuthor,
 };

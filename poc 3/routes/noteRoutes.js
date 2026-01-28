@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createNoteController, getAllNotesController, getAllNotesFromProjectController, getNoteByIdController, updateNoteController, deleteNoteController } = require('../controllers/noteController');
+const { createNoteController, getAllNotesController, getAllNotesFromProjectController, getNoteByIdController, updateNoteController, deleteNoteController, getNoteAuthorController } = require('../controllers/noteController');
 const { registerUser, loginUser, getUserProfile } = require('../controllers/userController');
 const { protect, authorizeNoteOwner, authorizeNoteEdit, authorizeNoteDelete } = require('../middlewares/authMiddleware');
 const { can } = require('../middlewares/rbacMiddleware');
@@ -23,5 +23,8 @@ router.delete('/note/:id', protect, authorizeNoteDelete, deleteNoteController);
 
 // Route pour récupérer toutes les notes d'un projet
 router.get('/project/:projectId', protect, getAllNotesFromProjectController);  // GET /api/notes/project/:projectId
+
+// Route pour récupérer l'auteur d'une note
+router.get('/note/:id/author', protect, getNoteAuthorController);  // GET /api/notes/note/:id/author
 
 module.exports = router;

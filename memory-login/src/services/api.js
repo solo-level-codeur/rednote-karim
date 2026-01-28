@@ -38,6 +38,7 @@ export const notesAPI = {
   getAllNotes: () => api.get('/notes'),
   getAllNotesFromProject: (projectId) => api.get(`/notes/project/${projectId}`),
   getNoteById: (id) => api.get(`/notes/note/${id}`),
+  getNoteAuthor: (id) => api.get(`/notes/note/${id}/author`),
   createNote: (noteData) => api.post('/notes/note', noteData),
   updateNote: (id, noteData) => api.put(`/notes/note/${id}`, noteData),
   deleteNote: (id) => api.delete(`/notes/note/${id}`),

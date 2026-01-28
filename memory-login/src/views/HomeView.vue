@@ -6,7 +6,7 @@
       <div class="container-fluid p-4">
         <!-- Section héro -->
         <div class="bg-white p-4 rounded shadow-sm mb-5">
-          <h1 class="display-6 fw-bold text-dark mb-2">Bienvenue sur Elite Memory</h1>
+          <h1 class="display-6 fw-bold text-dark mb-2">Bienvenue sur Red Note</h1>
           <p class="text-muted mb-0">Centralisez et organisez vos connaissances techniques</p>
         </div>
 
@@ -65,7 +65,7 @@
                     <h6 class="mb-2 fw-semibold">{{ note.title || 'Sans titre' }}</h6>
                     <div class="d-flex gap-3 mb-2">
                       <small class="text-muted">
-                        <i class="fas fa-folder me-1"></i>{{ note.project_name || 'Elite Memory' }}
+                        <i class="fas fa-folder me-1"></i>{{ note.project_name || 'Red Note' }}
                       </small>
                       <small class="text-muted">{{ formatDate(note.updated_at || note.created_at) }}</small>
                     </div>
